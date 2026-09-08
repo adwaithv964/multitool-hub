@@ -38,7 +38,7 @@
       </a>
       <div class="header-right">
         <span class="header-tag">Privacy-first tools</span>
-        <button id="installBtn" class="install-btn" onclick="installApp()" hidden aria-label="Install MultiTool app">
+        <button id="installBtn" class="install-btn" hidden aria-label="Install MultiTool app">
           &#x2B07; Install app
         </button>
       </div>
@@ -177,27 +177,7 @@
     </div>
   </footer>
 
-<script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/sw.js").catch(function(){});
-  }
-  var deferredPrompt;
-  window.addEventListener("beforeinstallprompt", function(e) {
-    e.preventDefault();
-    deferredPrompt = e;
-    var btn = document.getElementById("installBtn");
-    if (btn) btn.hidden = false;
-  });
-  window.addEventListener("appinstalled", function() {
-    var btn = document.getElementById("installBtn");
-    if (btn) btn.hidden = true;
-  });
-  function installApp() {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(function() { deferredPrompt = null; });
-  }
-</script>
+<script src="/app.js" defer></script>
 </body>
 </html>
 
