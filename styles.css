@@ -1,4 +1,4 @@
-﻿/* ── Reset & tokens ─────────────────────────────────────────────────────── */
+/* ── Reset & tokens ─────────────────────────────────────────────────────── */
 :root {
   --bg:         #0d1117;
   --surface:    #161b22;
@@ -146,3 +146,14 @@ body {
   .header-inner { padding: 0 16px; }
   .header-tag { display: none; }
 }
+
+/* Install button */
+.header-right { display: flex; align-items: center; gap: 10px; }
+.install-btn {
+  font-size: 12px; font-weight: 600; letter-spacing: .02em;
+  color: var(--text); background: linear-gradient(135deg,rgba(88,166,255,.15),rgba(188,140,255,.15));
+  border: 1px solid rgba(88,166,255,.3); border-radius: 20px; padding: 5px 13px;
+  cursor: pointer; transition: background .2s, border-color .2s;
+  font-family: inherit;
+}
+.install-btn:hover { background: linear-gradient(135deg,rgba(88,166,255,.25),rgba(188,140,255,.25)); border-color: rgba(88,166,255,.5); }

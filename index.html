@@ -1,10 +1,17 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="MultiTool — a growing collection of privacy-first, security-focused browser tools.">
   <meta name="theme-color" content="#0d1117">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MultiTool">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
   <title>MultiTool</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,7 +36,12 @@
         </span>
         <span class="brand-name">MultiTool</span>
       </a>
-      <span class="header-tag">Privacy-first tools</span>
+      <div class="header-right">
+        <span class="header-tag">Privacy-first tools</span>
+        <button id="installBtn" class="install-btn" onclick="installApp()" hidden aria-label="Install MultiTool app">
+          &#x2B07; Install app
+        </button>
+      </div>
     </div>
   </header>
 
@@ -165,6 +177,27 @@
     </div>
   </footer>
 
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js").catch(function(){});
+  }
+  var deferredPrompt;
+  window.addEventListener("beforeinstallprompt", function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    var btn = document.getElementById("installBtn");
+    if (btn) btn.hidden = false;
+  });
+  window.addEventListener("appinstalled", function() {
+    var btn = document.getElementById("installBtn");
+    if (btn) btn.hidden = true;
+  });
+  function installApp() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function() { deferredPrompt = null; });
+  }
+</script>
 </body>
 </html>
 
