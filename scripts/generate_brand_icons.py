@@ -1,6 +1,5 @@
 import os
 from PIL import Image, ImageDraw, ImageFilter
-import math
 
 def create_gradient_card(w, h, r, color1, color2):
     """Draw a rounded rectangle with a linear gradient from top-left to bottom-right."""
@@ -29,7 +28,7 @@ def render_symbol_canvas(canvas_size=1024, pad_factor=0.15, bg_color=None, maska
     card_size = int(avail * 0.65)
     radius = int(card_size * 0.28)
     
-    # Brand colors
+    # Canonical brand colors
     c_back1 = (255, 148, 31)
     c_back2 = (234, 88, 12)
     c_front1 = (254, 215, 170)
@@ -53,7 +52,7 @@ def render_symbol_canvas(canvas_size=1024, pad_factor=0.15, bg_color=None, maska
     x_front = int(actual_pad + avail * 0.33)
     y_front = int(actual_pad + avail * 0.09)
     
-    # Rotate back card slightly (-7 deg clockwise visually = rotate(7))
+    # Rotate back card slightly (-7 deg)
     rotated_back = back_card.rotate(-7, resample=Image.Resampling.BICUBIC, expand=True)
     
     # Soft shadow for back card
@@ -75,10 +74,10 @@ def render_symbol_canvas(canvas_size=1024, pad_factor=0.15, bg_color=None, maska
     return img
 
 def main():
-    print("[-] Generating MultiTool Hub Brand Identity & Favicon Suite...")
+    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    print(f"[-] Generating MultiTool Hub Brand Identity & Favicon Suite in {root_dir}...")
     
     master_transparent = render_symbol_canvas(1024, pad_factor=0.10, bg_color=None)
-    
     charcoal_bg = (13, 17, 23, 255)
     master_charcoal = render_symbol_canvas(1024, pad_factor=0.18, bg_color=charcoal_bg)
     master_maskable = render_symbol_canvas(1024, pad_factor=0.22, bg_color=charcoal_bg, maskable=True)
@@ -88,37 +87,28 @@ def main():
     fav32 = master_transparent.resize((32, 32), Image.Resampling.LANCZOS)
     fav48 = master_transparent.resize((48, 48), Image.Resampling.LANCZOS)
     
-    fav16.save("favicon-16x16.png")
-    fav32.save("favicon-32x32.png")
-    fav48.save("favicon-48x48.png")
-    fav32.save("favicon-32.png")
+    fav16.save(os.path.join(root_dir, "favicon-16x16.png"))
+    fav32.save(os.path.join(root_dir, "favicon-32x32.png"))
+    fav48.save(os.path.join(root_dir, "favicon-48x48.png"))
     
     # Multi-Resolution favicon.ico
-    fav48.save("favicon.ico", format="ICO", sizes=[(16, 16), (32, 32), (48, 48)])
+    fav48.save(os.path.join(root_dir, "favicon.ico"), format="ICO", sizes=[(16, 16), (32, 32), (48, 48)])
     
     # PWA App Icons
     icon192 = master_charcoal.resize((192, 192), Image.Resampling.LANCZOS)
-    icon192.save("icon-192.png")
+    icon192.save(os.path.join(root_dir, "icon-192.png"))
     
     icon512 = master_charcoal.resize((512, 512), Image.Resampling.LANCZOS)
-    icon512.save("icon-512.png")
+    icon512.save(os.path.join(root_dir, "icon-512.png"))
     
     icon_maskable = master_maskable.resize((512, 512), Image.Resampling.LANCZOS)
-    icon_maskable.save("icon-maskable-512.png")
+    icon_maskable.save(os.path.join(root_dir, "icon-maskable-512.png"))
     
     # Apple Touch Icon (180x180)
     apple180 = master_charcoal.resize((180, 180), Image.Resampling.LANCZOS)
-    apple180.save("apple-touch-icon.png")
+    apple180.save(os.path.join(root_dir, "apple-touch-icon.png"))
     
-    # Ensure assets/ directory also has updated icons
-    os.makedirs("assets", exist_ok=True)
-    fav32.save("assets/favicon-32.png")
-    fav48.save("assets/favicon.ico", format="ICO", sizes=[(16, 16), (32, 32), (48, 48)])
-    icon192.save("assets/icon-192.png")
-    icon512.save("assets/icon-512.png")
-    apple180.save("assets/apple-touch-icon.png")
-    
-    print("[SUCCESS] All Brand & Favicon Assets Generated Successfully!")
+    print("[SUCCESS] All Brand & Favicon Assets Generated Successfully in root!")
 
 if __name__ == "__main__":
     main()

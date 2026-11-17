@@ -1,6 +1,6 @@
 // MultiTool Hub — Hardened Application Shell Service Worker
-// Cache Version: multitool-shell-v6
-const CACHE_NAME = "multitool-shell-v6";
+// Cache Version: multitool-shell-v7
+const CACHE_NAME = "multitool-shell-v7";
 
 // Explicit allowlist of approved same-origin static shell assets
 const SHELL_ASSETS = [
@@ -14,7 +14,6 @@ const SHELL_ASSETS = [
   "/favicon-16x16.png",
   "/favicon-32x32.png",
   "/favicon-48x48.png",
-  "/favicon-32.png",
   "/apple-touch-icon.png",
   "/icon-192.png",
   "/icon-512.png",
@@ -23,8 +22,7 @@ const SHELL_ASSETS = [
   "/assets/hero-workspace.jpg",
   "/assets/images/tools/metaclean-art.svg",
   "/assets/images/tools/sendanywhere-art.svg",
-  "/assets/images/tools/ytmp34-art.svg",
-  "/assets/brand-logo.png"
+  "/assets/images/tools/ytmp34-art.svg"
 ];
 
 const SHELL_SET = new Set(SHELL_ASSETS);
