@@ -1,11 +1,20 @@
-// MultiTool Hub — Core Application Logic & Dynamic Registry
+// MultiTool Hub — Core Application Logic & Security-Hardened Registry
+// Strict zero-trust DOM construction, origin validation, and offline persistence.
 
-// Service Worker Registration
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. SERVICE WORKER REGISTRATION
+// ─────────────────────────────────────────────────────────────────────────────
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw.js").catch(function () {});
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () {
+      // Service worker registration failures handled gracefully
+    });
+  });
 }
 
-// PWA Install Prompt Support
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. PWA INSTALL PROMPT SUPPORT
+// ─────────────────────────────────────────────────────────────────────────────
 let deferredPrompt = null;
 const installBtn = document.getElementById("installBtn");
 
@@ -27,18 +36,106 @@ if (installBtn) {
     deferredPrompt.userChoice.then(function () {
       deferredPrompt = null;
       installBtn.hidden = true;
+    }).catch(function () {
+      deferredPrompt = null;
     });
   });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CENTRAL TOOLS REGISTRY
-// Adding any new tool here will AUTOMATICALLY:
-// 1. Update the "Tools Available" count (real live number)
-// 2. Increment its respective Category tool counts
-// 3. Render its card in "All Utilities & Services" with instant category filtering
-// 4. Update the "Updates" section modal accessible from the sidebar
-// 5. Index the tool in the Ctrl + K search dialog
+// 3. SECURE STORAGE WRAPPER
+// Guards against SecurityError (e.g. cookies disabled, private browsing sandbox)
+// and handles quota exceeded exceptions cleanly.
+// ─────────────────────────────────────────────────────────────────────────────
+const safeStorage = {
+  getItem: function (key) {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        return window.localStorage.getItem(key);
+      }
+    } catch (err) {
+      // Storage unavailable or restricted
+    }
+    return null;
+  },
+  setItem: function (key, value) {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem(key, String(value));
+      }
+    } catch (err) {
+      // Storage quota exceeded or disabled
+    }
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. URL VALIDATION & ORIGIN ALLOWLISTING
+// Prevents javascript:, data:, localhost, loopback, private RFC-1918 networks,
+// non-standard ports, and unapproved external origins.
+// ─────────────────────────────────────────────────────────────────────────────
+const APPROVED_TOOL_ORIGINS = new Set([
+  "https://metaclean-4k.vercel.app",
+  "https://sendanywhere-lite.onrender.com"
+]);
+
+function isValidToolUrl(urlString) {
+  if (!urlString || typeof urlString !== "string") {
+    return false;
+  }
+  try {
+    const parsed = new URL(urlString);
+    
+    // 1. Mandatory HTTPS
+    if (parsed.protocol !== "https:") {
+      return false;
+    }
+    
+    // 2. Disallow embedded credentials (http://user:pass@host)
+    if (parsed.username || parsed.password) {
+      return false;
+    }
+    
+    // 3. Disallow unexpected non-standard ports
+    if (parsed.port && parsed.port !== "443" && parsed.port !== "") {
+      return false;
+    }
+    
+    const hostname = parsed.hostname.toLowerCase();
+    
+    // 4. Disallow localhost, loopback, and local domain suffixes
+    if (
+      hostname === "localhost" ||
+      hostname.endsWith(".localhost") ||
+      hostname === "127.0.0.1" ||
+      hostname === "0.0.0.0" ||
+      hostname.endsWith(".local") ||
+      hostname.endsWith(".internal")
+    ) {
+      return false;
+    }
+    
+    // 5. Disallow IPv4 private network ranges (10.0.0.0/8, 192.168.0.0/16, 172.16.0.0/12)
+    if (hostname.startsWith("10.") || hostname.startsWith("192.168.")) {
+      return false;
+    }
+    const ip172Match = hostname.match(/^172\.(\d+)\./);
+    if (ip172Match) {
+      const octet = parseInt(ip172Match[1], 10);
+      if (octet >= 16 && octet <= 31) {
+        return false;
+      }
+    }
+    
+    // 6. Must belong to an explicitly approved production tool origin
+    return APPROVED_TOOL_ORIGINS.has(parsed.origin);
+  } catch (err) {
+    return false;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. CENTRAL TOOLS & CATEGORY REGISTRIES
 // ─────────────────────────────────────────────────────────────────────────────
 const TOOLS_DATA = [
   {
@@ -52,8 +149,7 @@ const TOOLS_DATA = [
     live: true,
     featured: true,
     iconBoxClass: "tool-icon--purple",
-    iconSvg: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
-    artSvg: "/assets/metaclean-art.svg",
+    iconId: "metaclean",
     addedDate: "2026-09-01",
     updateTag: "v1.0.0 · Core Integration",
     updateNote: "Lossless metadata stripping for JPEG, PNG, WEBP, TIFF, HEIC, and AVIF. Visual difference viewer and privacy verification."
@@ -69,8 +165,7 @@ const TOOLS_DATA = [
     live: true,
     featured: true,
     iconBoxClass: "tool-icon--cyan",
-    iconSvg: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
-    artSvg: "/assets/sendanywhere-art.svg",
+    iconId: "sendanywhere",
     addedDate: "2026-09-15",
     updateTag: "v1.0.0 · Security & P2P",
     updateNote: "Transfer up to 3 GB with AES-256-GCM encryption and 6-digit key auto-expiration."
@@ -79,272 +174,558 @@ const TOOLS_DATA = [
     id: "ytmp",
     title: "YTmp3/4",
     description: "Convert YouTube videos to MP4 or MP3. Pick your quality, hit convert — files are processed and auto-deleted after 1 hour.",
-    url: "http://localhost:3000",
+    url: "", // Inactive: localhost destination removed during security remediation
     categories: ["media"],
     tags: ["MP4", "MP3", "Up to 4K", "320 kbps"],
     features: ["🎥 Video + Audio", "⏱️ Auto-expires", "🔒 No tracking"],
-    live: true,
+    live: false, // Not live until verified HTTPS production endpoint is deployed
     featured: false,
     iconBoxClass: "tool-icon--coral",
-    iconSvg: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><path d="M12 18V5l9-2v11"/></svg>',
+    iconId: "ytmp",
     addedDate: "2026-09-21",
-    updateTag: "v1.0.0 · Media Converter",
-    updateNote: "Convert YouTube videos to MP4 or MP3 with up to 4K / 320kbps audio quality."
+    updateTag: "v1.0.0 · In Development",
+    updateNote: "YouTube video & audio converter (MP4 / MP3). Media processing pipeline currently in development."
   }
 ];
 
-// Master Category Definitions
 const CATEGORIES_DATA = [
   {
     id: "file",
     name: "File Utilities",
     iconClass: "cat-icon--cyan",
-    iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>'
+    iconId: "cat-file"
   },
   {
     id: "security",
     name: "Privacy & Security",
     iconClass: "cat-icon--pink",
-    iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>'
+    iconId: "cat-security"
   },
   {
     id: "network",
     name: "Network Tools",
     iconClass: "cat-icon--blue",
-    iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>'
+    iconId: "cat-network"
   },
   {
     id: "developer",
     name: "Developer Tools",
     iconClass: "cat-icon--violet",
-    iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>'
+    iconId: "cat-developer"
   },
   {
     id: "media",
     name: "Media Tools",
     iconClass: "cat-icon--magenta",
-    iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>'
+    iconId: "cat-media"
   },
   {
     id: "all",
     name: "All Tools",
     iconClass: "cat-icon--teal",
-    iconSvg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>'
+    iconId: "cat-all"
   }
 ];
 
-// Document Ready Initialization
+const ALLOWED_CATEGORY_IDS = new Set(["file", "security", "network", "developer", "media", "all"]);
+const ALLOWED_ICON_BOX_CLASSES = new Set([
+  "tool-icon--purple",
+  "tool-icon--cyan",
+  "tool-icon--coral",
+  "tool-icon--muted"
+]);
+const ALLOWED_CAT_CLASSES = new Set([
+  "cat-icon--cyan",
+  "cat-icon--pink",
+  "cat-icon--blue",
+  "cat-icon--violet",
+  "cat-icon--magenta",
+  "cat-icon--teal"
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 6. SAFE SVG DOM BUILDER
+// Programmatically constructs clean SVG DOM nodes using createElementNS.
+// Completely bypasses innerHTML, preventing SVG-based script/attribute injection.
+// ─────────────────────────────────────────────────────────────────────────────
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+function createSvgElement(tag, attrs) {
+  const el = document.createElementNS(SVG_NS, tag);
+  if (attrs) {
+    for (const key in attrs) {
+      if (Object.prototype.hasOwnProperty.call(attrs, key)) {
+        el.setAttribute(key, attrs[key]);
+      }
+    }
+  }
+  return el;
+}
+
+function renderSafeSvgIcon(iconId, size) {
+  const s = String(size || 24);
+  const svg = createSvgElement("svg", {
+    width: s,
+    height: s,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": "2",
+    "stroke-linecap": "round",
+    "stroke-linejoin": "round"
+  });
+
+  switch (iconId) {
+    case "metaclean":
+      svg.appendChild(createSvgElement("rect", { x: "3", y: "3", width: "18", height: "18", rx: "2", ry: "2" }));
+      svg.appendChild(createSvgElement("circle", { cx: "8.5", cy: "8.5", r: "1.5" }));
+      svg.appendChild(createSvgElement("polyline", { points: "21 15 16 10 5 21" }));
+      break;
+
+    case "sendanywhere":
+      svg.appendChild(createSvgElement("line", { x1: "22", y1: "2", x2: "11", y2: "13" }));
+      svg.appendChild(createSvgElement("polygon", { points: "22 2 15 22 11 13 2 9 22 2" }));
+      break;
+
+    case "ytmp":
+      svg.appendChild(createSvgElement("circle", { cx: "9", cy: "18", r: "3" }));
+      svg.appendChild(createSvgElement("circle", { cx: "18", cy: "16", r: "3" }));
+      svg.appendChild(createSvgElement("path", { d: "M12 18V5l9-2v11" }));
+      break;
+
+    case "clock-soon":
+      svg.appendChild(createSvgElement("circle", { cx: "12", cy: "12", r: "10" }));
+      svg.appendChild(createSvgElement("polyline", { points: "12 6 12 12 16 14" }));
+      break;
+
+    case "cat-file":
+      svg.appendChild(createSvgElement("path", { d: "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" }));
+      break;
+
+    case "cat-security":
+      svg.appendChild(createSvgElement("path", { d: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" }));
+      break;
+
+    case "cat-network":
+      svg.appendChild(createSvgElement("path", { d: "M5 12.55a11 11 0 0 1 14.08 0" }));
+      svg.appendChild(createSvgElement("path", { d: "M1.42 9a16 16 0 0 1 21.16 0" }));
+      svg.appendChild(createSvgElement("path", { d: "M8.53 16.11a6 6 0 0 1 6.95 0" }));
+      svg.appendChild(createSvgElement("line", { x1: "12", y1: "20", x2: "12.01", y2: "20" }));
+      break;
+
+    case "cat-developer":
+      svg.appendChild(createSvgElement("polyline", { points: "16 18 22 12 16 6" }));
+      svg.appendChild(createSvgElement("polyline", { points: "8 6 2 12 8 18" }));
+      break;
+
+    case "cat-media":
+      svg.appendChild(createSvgElement("polygon", { points: "5 3 19 12 5 21 5 3" }));
+      break;
+
+    case "cat-all":
+      svg.appendChild(createSvgElement("rect", { x: "3", y: "3", width: "7", height: "7", rx: "1.5" }));
+      svg.appendChild(createSvgElement("rect", { x: "14", y: "3", width: "7", height: "7", rx: "1.5" }));
+      svg.appendChild(createSvgElement("rect", { x: "3", y: "14", width: "7", height: "7", rx: "1.5" }));
+      svg.appendChild(createSvgElement("rect", { x: "14", y: "14", width: "7", height: "7", rx: "1.5" }));
+      break;
+
+    case "arrow-right":
+      svg.setAttribute("stroke-width", "2.5");
+      svg.appendChild(createSvgElement("line", { x1: "5", y1: "12", x2: "19", y2: "12" }));
+      svg.appendChild(createSvgElement("polyline", { points: "12 5 19 12 12 19" }));
+      break;
+
+    case "search-check":
+      svg.appendChild(createSvgElement("rect", { x: "3", y: "3", width: "18", height: "18", rx: "2" }));
+      svg.appendChild(createSvgElement("path", { d: "m9 12 2 2 4-4" }));
+      break;
+
+    default:
+      svg.appendChild(createSvgElement("circle", { cx: "12", cy: "12", r: "9" }));
+      break;
+  }
+
+  return svg;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 7. MAIN APPLICATION LIFECYCLE
+// ─────────────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", function () {
 
-  // 1. Dynamic Statistics Rendering (Real live numbers)
+  // 1. Dynamic Statistics Rendering (Real live counts via textContent)
   function updateStats() {
     const statTools = document.getElementById("statToolsAvailable");
     if (statTools) {
-      statTools.innerText = String(TOOLS_DATA.length);
+      statTools.textContent = String(TOOLS_DATA.length);
     }
     const statNew = document.getElementById("statNewThisMonth");
     if (statNew) {
-      statNew.innerText = String(TOOLS_DATA.length);
+      statNew.textContent = String(TOOLS_DATA.length);
     }
   }
 
-  // 2. Dynamic Categories Rendering with Real Tool Counts
+  // 2. Dynamic Categories Rendering via Safe DOM Construction
   function renderCategories() {
     const catGrid = document.getElementById("categoriesGrid");
     if (!catGrid) return;
 
-    catGrid.innerHTML = CATEGORIES_DATA.map(function (cat) {
+    while (catGrid.firstChild) {
+      catGrid.removeChild(catGrid.firstChild);
+    }
+
+    CATEGORIES_DATA.forEach(function (cat) {
       const count = cat.id === "all"
         ? TOOLS_DATA.length
         : TOOLS_DATA.filter(function (t) { return t.categories && t.categories.includes(cat.id); }).length;
-      
+
       const countLabel = count + (count === 1 ? " tool" : " tools");
 
-      return (
-        '<button class="category-card" data-cat="' + cat.id + '" aria-label="Filter by ' + escapeHTML(cat.name) + '">' +
-          '<div class="cat-icon ' + cat.iconClass + '">' + cat.iconSvg + '</div>' +
-          '<div class="cat-content">' +
-            '<div class="cat-name">' + escapeHTML(cat.name) + '</div>' +
-            '<div class="cat-count">' + countLabel + '</div>' +
-          '</div>' +
-        '</button>'
-      );
-    }).join("");
+      const cardBtn = document.createElement("button");
+      cardBtn.className = "category-card";
+      cardBtn.setAttribute("data-cat", cat.id);
+      cardBtn.setAttribute("aria-label", "Filter by " + cat.name);
 
-    // Attach click listeners to category cards
-    catGrid.querySelectorAll(".category-card").forEach(function (card) {
-      card.addEventListener("click", function () {
-        const cat = card.getAttribute("data-cat");
-        applyCategoryFilter(cat);
+      const iconWrap = document.createElement("div");
+      const safeIconClass = ALLOWED_CAT_CLASSES.has(cat.iconClass) ? cat.iconClass : "cat-icon--teal";
+      iconWrap.className = "cat-icon " + safeIconClass;
+      iconWrap.appendChild(renderSafeSvgIcon(cat.iconId, 22));
+
+      const contentWrap = document.createElement("div");
+      contentWrap.className = "cat-content";
+
+      const nameEl = document.createElement("div");
+      nameEl.className = "cat-name";
+      nameEl.textContent = cat.name;
+
+      const countEl = document.createElement("div");
+      countEl.className = "cat-count";
+      countEl.textContent = countLabel;
+
+      contentWrap.appendChild(nameEl);
+      contentWrap.appendChild(countEl);
+      cardBtn.appendChild(iconWrap);
+      cardBtn.appendChild(contentWrap);
+
+      cardBtn.addEventListener("click", function () {
+        applyCategoryFilter(cat.id);
         const dirSection = document.getElementById("all-tools");
         if (dirSection) {
           dirSection.scrollIntoView({ behavior: "smooth" });
         }
       });
+
+      catGrid.appendChild(cardBtn);
     });
   }
 
-  // 3. Dynamic Filter Pills for Directory
+  // 3. Dynamic Filter Pills for Directory via Safe DOM Construction
   function renderFilterPills() {
     const filterRow = document.getElementById("dirFilterRow");
     if (!filterRow) return;
 
-    // Build pills for "all" plus any category that has tools
+    while (filterRow.firstChild) {
+      filterRow.removeChild(filterRow.firstChild);
+    }
+
     const categoriesWithTools = CATEGORIES_DATA.filter(function (cat) {
       if (cat.id === "all") return true;
       return TOOLS_DATA.some(function (t) { return t.categories && t.categories.includes(cat.id); });
     });
 
-    filterRow.innerHTML = categoriesWithTools.map(function (cat) {
-      const isActive = cat.id === "all" ? " active" : "";
-      return '<button class="filter-pill' + isActive + '" data-filter="' + cat.id + '">' + escapeHTML(cat.name) + '</button>';
-    }).join("");
+    categoriesWithTools.forEach(function (cat) {
+      const pill = document.createElement("button");
+      pill.className = "filter-pill" + (cat.id === "all" ? " active" : "");
+      pill.setAttribute("data-filter", cat.id);
+      pill.textContent = cat.name;
 
-    filterRow.querySelectorAll(".filter-pill").forEach(function (pill) {
       pill.addEventListener("click", function () {
-        const filter = pill.getAttribute("data-filter");
-        applyCategoryFilter(filter);
+        applyCategoryFilter(cat.id);
       });
+
+      filterRow.appendChild(pill);
     });
   }
 
-  // 4. Dynamic Tools Directory Rendering
+  // 4. Dynamic Tools Directory Rendering via Safe DOM Construction
   function renderToolsDirectory() {
     const toolsGrid = document.getElementById("toolsGrid");
     if (!toolsGrid) return;
 
-    const cardsHtml = TOOLS_DATA.map(function (tool) {
-      const catClasses = (tool.categories || []).join(" ");
-      const tagsHtml = (tool.tags || []).map(function (tag) {
-        return '<span class="format-tag">' + escapeHTML(tag) + '</span>';
-      }).join("");
+    while (toolsGrid.firstChild) {
+      toolsGrid.removeChild(toolsGrid.firstChild);
+    }
 
-      const featuresHtml = (tool.features || []).map(function (feat) {
-        return '<span class="feat-badge">' + escapeHTML(feat) + '</span>';
-      }).join("");
+    TOOLS_DATA.forEach(function (tool) {
+      const card = document.createElement("article");
+      card.className = "tool-card";
 
-      return (
-        '<article class="tool-card" data-categories="' + catClasses + '">' +
-          '<div class="tool-card-head">' +
-            '<div class="tool-icon-box ' + (tool.iconBoxClass || "tool-icon--purple") + '" aria-hidden="true">' +
-              tool.iconSvg +
-            '</div>' +
-            '<span class="live-badge">' +
-              '<span class="live-dot"></span>' +
-              'LIVE' +
-            '</span>' +
-          '</div>' +
-          '<h3 class="tool-card-title">' + escapeHTML(tool.title) + '</h3>' +
-          '<p class="tool-card-desc">' + escapeHTML(tool.description) + '</p>' +
-          '<div class="tag-row">' + tagsHtml + '</div>' +
-          '<div class="tool-card-features">' + featuresHtml + '</div>' +
-          '<a href="' + tool.url + '" target="_blank" rel="noopener" class="card-btn card-btn--purple" aria-label="Open ' + escapeHTML(tool.title) + '">' +
-            '<span>Open Tool</span>' +
-            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
-              '<line x1="5" y1="12" x2="19" y2="12"></line>' +
-              '<polyline points="12 5 19 12 12 19"></polyline>' +
-            '</svg>' +
-          '</a>' +
-        '</article>'
-      );
-    }).join("");
+      // Filter categories against allowlist
+      const safeCats = (tool.categories || []).filter(function (c) {
+        return ALLOWED_CATEGORY_IDS.has(c);
+      });
+      card.setAttribute("data-categories", safeCats.join(" "));
 
-    const comingSoonHtml = (
-      '<article class="tool-card tool-card--soon" data-categories="all">' +
-        '<div class="tool-card-head">' +
-          '<div class="tool-icon-box tool-icon--muted" aria-hidden="true">' +
-            '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-              '<circle cx="12" cy="12" r="10"></circle>' +
-              '<polyline points="12 6 12 12 16 14"></polyline>' +
-            '</svg>' +
-          '</div>' +
-          '<span class="soon-badge">SOON</span>' +
-        '</div>' +
-        '<h3 class="tool-card-title">More Tools in Development</h3>' +
-        '<p class="tool-card-desc">' +
-          'New utilities added regularly with zero tracking, offline capability, and client-side encryption.' +
-        '</p>' +
-        '<div class="tag-row">' +
-          '<span class="format-tag">Modular</span>' +
-          '<span class="format-tag">Zero Cloud Data</span>' +
-        '</div>' +
-        '<div class="coming-soon-pill">New tool in progress&hellip;</div>' +
-      '</article>'
-    );
+      // Card Header
+      const head = document.createElement("div");
+      head.className = "tool-card-head";
 
-    toolsGrid.innerHTML = cardsHtml + comingSoonHtml;
+      const iconBox = document.createElement("div");
+      const safeBoxClass = ALLOWED_ICON_BOX_CLASSES.has(tool.iconBoxClass)
+        ? tool.iconBoxClass
+        : "tool-icon--purple";
+      iconBox.className = "tool-icon-box " + safeBoxClass;
+      iconBox.setAttribute("aria-hidden", "true");
+      iconBox.appendChild(renderSafeSvgIcon(tool.iconId, 24));
+      head.appendChild(iconBox);
+
+      const isLiveValid = Boolean(tool.live && isValidToolUrl(tool.url));
+
+      if (isLiveValid) {
+        const liveBadge = document.createElement("span");
+        liveBadge.className = "live-badge";
+        const dot = document.createElement("span");
+        dot.className = "live-dot";
+        liveBadge.appendChild(dot);
+        liveBadge.appendChild(document.createTextNode("LIVE"));
+        head.appendChild(liveBadge);
+      } else {
+        const soonBadge = document.createElement("span");
+        soonBadge.className = "soon-badge";
+        soonBadge.textContent = "SOON";
+        head.appendChild(soonBadge);
+      }
+
+      card.appendChild(head);
+
+      // Title & Description
+      const titleEl = document.createElement("h3");
+      titleEl.className = "tool-card-title";
+      titleEl.textContent = tool.title;
+      card.appendChild(titleEl);
+
+      const descEl = document.createElement("p");
+      descEl.className = "tool-card-desc";
+      descEl.textContent = tool.description;
+      card.appendChild(descEl);
+
+      // Tags
+      const tagRow = document.createElement("div");
+      tagRow.className = "tag-row";
+      (tool.tags || []).forEach(function (tag) {
+        const tagSpan = document.createElement("span");
+        tagSpan.className = "format-tag";
+        tagSpan.textContent = tag;
+        tagRow.appendChild(tagSpan);
+      });
+      card.appendChild(tagRow);
+
+      // Features
+      const featRow = document.createElement("div");
+      featRow.className = "tool-card-features";
+      (tool.features || []).forEach(function (feat) {
+        const featSpan = document.createElement("span");
+        featSpan.className = "feat-badge";
+        featSpan.textContent = feat;
+        featRow.appendChild(featSpan);
+      });
+      card.appendChild(featRow);
+
+      // Action Button
+      if (isLiveValid) {
+        const openBtn = document.createElement("a");
+        openBtn.href = tool.url;
+        openBtn.target = "_blank";
+        openBtn.rel = "noopener noreferrer";
+        openBtn.className = "card-btn card-btn--purple";
+        openBtn.setAttribute("aria-label", "Open " + tool.title);
+
+        const btnText = document.createElement("span");
+        btnText.textContent = "Open Tool";
+        openBtn.appendChild(btnText);
+        openBtn.appendChild(renderSafeSvgIcon("arrow-right", 14));
+
+        card.appendChild(openBtn);
+      } else {
+        const disabledBtn = document.createElement("button");
+        disabledBtn.type = "button";
+        disabledBtn.className = "card-btn card-btn--disabled";
+        disabledBtn.disabled = true;
+        disabledBtn.setAttribute("aria-disabled", "true");
+        disabledBtn.setAttribute("aria-label", tool.title + " Coming Soon");
+
+        const disabledText = document.createElement("span");
+        disabledText.textContent = "Coming Soon";
+        disabledBtn.appendChild(disabledText);
+
+        card.appendChild(disabledBtn);
+      }
+
+      toolsGrid.appendChild(card);
+    });
+
+    // Static "More Tools in Development" Card
+    const soonCard = document.createElement("article");
+    soonCard.className = "tool-card tool-card--soon";
+    soonCard.setAttribute("data-categories", "all");
+
+    const soonHead = document.createElement("div");
+    soonHead.className = "tool-card-head";
+
+    const soonIconBox = document.createElement("div");
+    soonIconBox.className = "tool-icon-box tool-icon--muted";
+    soonIconBox.setAttribute("aria-hidden", "true");
+    soonIconBox.appendChild(renderSafeSvgIcon("clock-soon", 24));
+    soonHead.appendChild(soonIconBox);
+
+    const soonBadge = document.createElement("span");
+    soonBadge.className = "soon-badge";
+    soonBadge.textContent = "SOON";
+    soonHead.appendChild(soonBadge);
+    soonCard.appendChild(soonHead);
+
+    const soonTitle = document.createElement("h3");
+    soonTitle.className = "tool-card-title";
+    soonTitle.textContent = "More Tools in Development";
+    soonCard.appendChild(soonTitle);
+
+    const soonDesc = document.createElement("p");
+    soonDesc.className = "tool-card-desc";
+    soonDesc.textContent = "New utilities added regularly with zero tracking, offline capability, and client-side encryption.";
+    soonCard.appendChild(soonDesc);
+
+    const soonTagRow = document.createElement("div");
+    soonTagRow.className = "tag-row";
+    const tag1 = document.createElement("span");
+    tag1.className = "format-tag";
+    tag1.textContent = "Modular";
+    const tag2 = document.createElement("span");
+    tag2.className = "format-tag";
+    tag2.textContent = "Zero Cloud Data";
+    soonTagRow.appendChild(tag1);
+    soonTagRow.appendChild(tag2);
+    soonCard.appendChild(soonTagRow);
+
+    const soonPill = document.createElement("div");
+    soonPill.className = "coming-soon-pill";
+    soonPill.textContent = "New tool in progress…";
+    soonCard.appendChild(soonPill);
+
+    toolsGrid.appendChild(soonCard);
   }
 
-  // 5. Dynamic "Updates" Modal Section (Auto-updated when new tools are added)
+  // 5. Dynamic "Updates" Modal Section (Auto-updated, Safe DOM Construction)
   function renderUpdatesModal() {
     const updatesBody = document.getElementById("updatesModalBody");
     if (!updatesBody) return;
 
-    // Platform release notes
-    const platformEntry = (
-      '<div class="update-entry">' +
-        '<div class="update-tag">v1.0.0 · Core Platform</div>' +
-        '<h4 class="update-title">Brand New Dashboard &amp; 3D Glass Design System</h4>' +
-        '<p class="update-desc">Complete visual overhaul matching the official MultiTool Hub branding. Responsive sidebar navigation, desktop &amp; mobile optimized viewports, and unified utility hubs.</p>' +
-      '</div>'
-    );
+    while (updatesBody.firstChild) {
+      updatesBody.removeChild(updatesBody.firstChild);
+    }
 
-    // Dynamic tool updates (sorted newest first)
+    // Core Platform Release Entry
+    const platformEntry = document.createElement("div");
+    platformEntry.className = "update-entry";
+
+    const pTag = document.createElement("div");
+    pTag.className = "update-tag";
+    pTag.textContent = "v1.0.0 · Core Platform";
+
+    const pTitle = document.createElement("h4");
+    pTitle.className = "update-title";
+    pTitle.textContent = "Brand New Dashboard & 3D Glass Design System";
+
+    const pDesc = document.createElement("p");
+    pDesc.className = "update-desc";
+    pDesc.textContent = "Complete visual overhaul matching the official MultiTool Hub branding. Responsive sidebar navigation, desktop & mobile optimized viewports, and unified utility hubs.";
+
+    platformEntry.appendChild(pTag);
+    platformEntry.appendChild(pTitle);
+    platformEntry.appendChild(pDesc);
+    updatesBody.appendChild(platformEntry);
+
+    // Dynamic Tool Updates (sorted newest first)
     const sortedTools = TOOLS_DATA.slice().sort(function (a, b) {
       return (b.addedDate || "").localeCompare(a.addedDate || "");
     });
 
-    const toolEntries = sortedTools.map(function (tool) {
-      const tag = tool.updateTag || (tool.title + " · Live Release");
-      const note = tool.updateNote || tool.description;
-      return (
-        '<div class="update-entry">' +
-          '<div class="update-tag">' + escapeHTML(tag) + '</div>' +
-          '<h4 class="update-title">' + escapeHTML(tool.title) + '</h4>' +
-          '<p class="update-desc">' + escapeHTML(note) + '</p>' +
-          '<div style="margin-top:8px;">' +
-            '<a href="' + tool.url + '" target="_blank" rel="noopener" style="font-size:0.8rem;color:#c084fc;text-decoration:none;font-weight:600;">' +
-              'Open ' + escapeHTML(tool.title) + ' &rarr;' +
-            '</a>' +
-          '</div>' +
-        '</div>'
-      );
-    }).join("");
+    sortedTools.forEach(function (tool) {
+      const entry = document.createElement("div");
+      entry.className = "update-entry";
 
-    updatesBody.innerHTML = platformEntry + toolEntries;
+      const tag = document.createElement("div");
+      tag.className = "update-tag";
+      tag.textContent = tool.updateTag || (tool.title + " · Release");
+
+      const title = document.createElement("h4");
+      title.className = "update-title";
+      title.textContent = tool.title;
+
+      const desc = document.createElement("p");
+      desc.className = "update-desc";
+      desc.textContent = tool.updateNote || tool.description;
+
+      entry.appendChild(tag);
+      entry.appendChild(title);
+      entry.appendChild(desc);
+
+      const isLiveValid = Boolean(tool.live && isValidToolUrl(tool.url));
+      const actionBox = document.createElement("div");
+      actionBox.className = "update-link-box";
+
+      if (isLiveValid) {
+        const link = document.createElement("a");
+        link.href = tool.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.className = "update-link";
+        link.textContent = "Open " + tool.title + " →";
+        actionBox.appendChild(link);
+      } else {
+        const pill = document.createElement("span");
+        pill.className = "update-status-pill";
+        pill.textContent = "In Development";
+        actionBox.appendChild(pill);
+      }
+
+      entry.appendChild(actionBox);
+      updatesBody.appendChild(entry);
+    });
   }
 
-  // 6. Category Filtering Logic
+  // 6. Category Filtering Logic (Replaces inline style assignment with CSS class)
   function applyCategoryFilter(catKey) {
+    if (!ALLOWED_CATEGORY_IDS.has(catKey)) {
+      catKey = "all";
+    }
+
     const filterPills = document.querySelectorAll(".filter-pill");
     filterPills.forEach(function (pill) {
-      if (pill.getAttribute("data-filter") === catKey) {
-        pill.classList.add("active");
-      } else {
-        pill.classList.remove("active");
-      }
+      pill.classList.toggle("active", pill.getAttribute("data-filter") === catKey);
     });
 
     const toolCards = document.querySelectorAll(".directory-grid .tool-card");
     toolCards.forEach(function (card) {
       const cardCats = (card.getAttribute("data-categories") || "").split(" ");
       if (catKey === "all" || cardCats.includes(catKey)) {
-        card.style.display = "";
+        card.classList.remove("tool-card--hidden");
       } else {
-        card.style.display = "none";
+        card.classList.add("tool-card--hidden");
       }
     });
   }
 
   // 7. Theme Toggle & Persistence
-  const savedTheme = localStorage.getItem("multitool-theme");
+  const savedTheme = safeStorage.getItem("multitool-theme");
   if (savedTheme === "light") {
     document.body.classList.add("theme-light");
+  } else {
+    document.body.classList.remove("theme-light");
   }
 
   function toggleTheme() {
     const isLight = document.body.classList.toggle("theme-light");
-    localStorage.setItem("multitool-theme", isLight ? "light" : "dark");
+    safeStorage.setItem("multitool-theme", isLight ? "light" : "dark");
     showToast(isLight ? "Switched to High-Contrast Theme" : "Switched to Obsidian Dark Theme");
   }
 
@@ -393,41 +774,103 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   const updatesClose = document.getElementById("updatesModalClose");
-  if (updatesClose) updatesClose.addEventListener("click", function () { closeDialog("updatesModal"); });
+  if (updatesClose) {
+    updatesClose.addEventListener("click", function () {
+      closeDialog("updatesModal");
+    });
+  }
 
-  // Quick Action: Tool Request
+  // Quick Action: Tool Request (Strict client-side handling with local persistence)
   const qaNewRequest = document.getElementById("qaNewRequest");
-  if (qaNewRequest) qaNewRequest.addEventListener("click", function () { openDialog("requestModal"); });
+  if (qaNewRequest) {
+    qaNewRequest.addEventListener("click", function () {
+      openDialog("requestModal");
+    });
+  }
   const reqClose = document.getElementById("reqModalClose");
-  if (reqClose) reqClose.addEventListener("click", function () { closeDialog("requestModal"); });
+  if (reqClose) {
+    reqClose.addEventListener("click", function () {
+      closeDialog("requestModal");
+    });
+  }
 
   const reqForm = document.getElementById("reqForm");
   if (reqForm) {
     reqForm.addEventListener("submit", function (e) {
       e.preventDefault();
+      const nameInput = document.getElementById("reqToolName");
+      const descInput = document.getElementById("reqToolDesc");
+      const toolName = (nameInput ? nameInput.value : "").trim().slice(0, 100);
+      const toolDesc = (descInput ? descInput.value : "").trim().slice(0, 1000);
+
+      if (!toolName || !toolDesc) {
+        showToast("Please provide both a name and a description.");
+        return;
+      }
+
+      try {
+        const stored = JSON.parse(safeStorage.getItem("multitool_feedback") || "[]");
+        stored.push({
+          type: "request",
+          name: toolName,
+          desc: toolDesc,
+          timestamp: new Date().toISOString()
+        });
+        safeStorage.setItem("multitool_feedback", JSON.stringify(stored.slice(-20)));
+      } catch (err) {}
+
       closeDialog("requestModal");
       reqForm.reset();
-      showToast("Tool request submitted! Thank you for the suggestion.");
+      showToast("Tool request recorded in local feedback log.");
     });
   }
 
-  // Quick Action: Report Issue
+  // Quick Action: Report Issue (Strict client-side handling with local persistence)
   const qaReportIssue = document.getElementById("qaReportIssue");
-  if (qaReportIssue) qaReportIssue.addEventListener("click", function () { openDialog("issueModal"); });
+  if (qaReportIssue) {
+    qaReportIssue.addEventListener("click", function () {
+      openDialog("issueModal");
+    });
+  }
   const issueClose = document.getElementById("issueModalClose");
-  if (issueClose) issueClose.addEventListener("click", function () { closeDialog("issueModal"); });
+  if (issueClose) {
+    issueClose.addEventListener("click", function () {
+      closeDialog("issueModal");
+    });
+  }
 
   const issueForm = document.getElementById("issueForm");
   if (issueForm) {
     issueForm.addEventListener("submit", function (e) {
       e.preventDefault();
+      const toolSelect = document.getElementById("issueTool");
+      const detailsInput = document.getElementById("issueDetails");
+      const affectedTool = (toolSelect ? toolSelect.value : "general").slice(0, 50);
+      const details = (detailsInput ? detailsInput.value : "").trim().slice(0, 1000);
+
+      if (!details) {
+        showToast("Please describe the issue.");
+        return;
+      }
+
+      try {
+        const stored = JSON.parse(safeStorage.getItem("multitool_feedback") || "[]");
+        stored.push({
+          type: "issue",
+          tool: affectedTool,
+          details: details,
+          timestamp: new Date().toISOString()
+        });
+        safeStorage.setItem("multitool_feedback", JSON.stringify(stored.slice(-20)));
+      } catch (err) {}
+
       closeDialog("issueModal");
       issueForm.reset();
-      showToast("Issue report submitted! We will investigate shortly.");
+      showToast("Issue report recorded in local feedback log.");
     });
   }
 
-  // 9. Interactive Search Dialog (Ctrl + K)
+  // 9. Interactive Search Dialog (Ctrl + K) via Safe DOM Construction
   const searchTriggers = document.querySelectorAll(".search-trigger");
   const searchModal = document.getElementById("searchModal");
   const modalSearchInput = document.getElementById("modalSearchInput");
@@ -476,37 +919,71 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function renderSearchResults(query) {
     if (!modalResultsList) return;
+
+    while (modalResultsList.firstChild) {
+      modalResultsList.removeChild(modalResultsList.firstChild);
+    }
+
     const q = query.trim().toLowerCase();
     const filtered = TOOLS_DATA.filter(function (tool) {
       if (!q) return true;
       return (
         tool.title.toLowerCase().includes(q) ||
         tool.description.toLowerCase().includes(q) ||
-        tool.tags.some(function (t) { return t.toLowerCase().includes(q); })
+        (tool.tags || []).some(function (t) { return t.toLowerCase().includes(q); })
       );
     });
 
     if (filtered.length === 0) {
-      modalResultsList.innerHTML = '<div style="padding:20px;text-align:center;color:#64748b;font-size:0.88rem;">No utilities found matching "' + escapeHTML(query) + '"</div>';
+      const emptyDiv = document.createElement("div");
+      emptyDiv.className = "search-empty-msg";
+      emptyDiv.textContent = 'No utilities found matching "' + query + '"';
+      modalResultsList.appendChild(emptyDiv);
       return;
     }
 
-    modalResultsList.innerHTML = filtered.map(function (tool, index) {
-      return (
-        '<a href="' + tool.url + '" target="_blank" rel="noopener" class="search-result-item' + (index === 0 ? " selected" : "") + '">' +
-          '<div class="result-item-main">' +
-            '<div class="result-item-icon">' +
-              '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m9 12 2 2 4-4"/></svg>' +
-            '</div>' +
-            '<div>' +
-              '<div class="result-item-title">' + escapeHTML(tool.title) + '</div>' +
-              '<div style="font-size:0.75rem;color:#94a3b8;margin-top:2px;">' + escapeHTML(tool.description) + '</div>' +
-            '</div>' +
-          '</div>' +
-          '<span class="result-item-badge">OPEN</span>' +
-        '</a>'
-      );
-    }).join("");
+    filtered.forEach(function (tool, index) {
+      const isLiveValid = Boolean(tool.live && isValidToolUrl(tool.url));
+      const item = document.createElement(isLiveValid ? "a" : "div");
+      item.className = "search-result-item" + (index === 0 ? " selected" : "");
+
+      if (isLiveValid) {
+        item.href = tool.url;
+        item.target = "_blank";
+        item.rel = "noopener noreferrer";
+      }
+
+      const mainWrap = document.createElement("div");
+      mainWrap.className = "result-item-main";
+
+      const iconWrap = document.createElement("div");
+      iconWrap.className = "result-item-icon";
+      iconWrap.appendChild(renderSafeSvgIcon("search-check", 18));
+      mainWrap.appendChild(iconWrap);
+
+      const textWrap = document.createElement("div");
+
+      const titleEl = document.createElement("div");
+      titleEl.className = "result-item-title";
+      titleEl.textContent = tool.title;
+
+      const descEl = document.createElement("div");
+      descEl.className = "search-result-desc";
+      descEl.textContent = tool.description;
+
+      textWrap.appendChild(titleEl);
+      textWrap.appendChild(descEl);
+      mainWrap.appendChild(textWrap);
+
+      const badge = document.createElement("span");
+      badge.className = "result-item-badge";
+      badge.textContent = isLiveValid ? "OPEN" : "SOON";
+
+      item.appendChild(mainWrap);
+      item.appendChild(badge);
+
+      modalResultsList.appendChild(item);
+    });
   }
 
   if (modalSearchInput) {
@@ -555,29 +1032,26 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // 11. Mobile Drawer Toggle
+  // 11. Mobile Drawer Toggle (Uses CSS classes instead of inline styles)
   const mobileMenuToggle = document.getElementById("mobileMenuToggle");
   const sidebar = document.getElementById("sidebar");
   const drawerOverlay = document.getElementById("drawerOverlay");
 
   if (mobileMenuToggle && sidebar) {
     mobileMenuToggle.addEventListener("click", function () {
-      const isOpen = sidebar.style.display === "flex";
-      sidebar.style.display = isOpen ? "none" : "flex";
-      sidebar.style.position = "fixed";
-      sidebar.style.zIndex = "110";
-      sidebar.style.left = "0";
-      sidebar.style.top = "0";
-      if (drawerOverlay) drawerOverlay.style.display = isOpen ? "none" : "block";
+      const isOpen = sidebar.classList.toggle("sidebar--open");
+      if (drawerOverlay) {
+        drawerOverlay.classList.toggle("drawer-overlay--open", isOpen);
+      }
     });
   }
 
   if (drawerOverlay) {
     drawerOverlay.addEventListener("click", function () {
-      if (sidebar && window.innerWidth <= 900) {
-        sidebar.style.display = "none";
+      if (sidebar) {
+        sidebar.classList.remove("sidebar--open");
       }
-      drawerOverlay.style.display = "none";
+      drawerOverlay.classList.remove("drawer-overlay--open");
     });
   }
 
@@ -587,32 +1061,46 @@ document.addEventListener("DOMContentLoaded", function () {
   renderFilterPills();
   renderToolsDirectory();
   renderUpdatesModal();
-
 });
 
-// Helper Functions
+// ─────────────────────────────────────────────────────────────────────────────
+// 8. SECURITY-HARDENED NOTIFICATIONS & ESCAPING HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
 function showToast(message) {
   const container = document.getElementById("toastContainer");
   if (!container) return;
+
   const toast = document.createElement("div");
   toast.className = "toast";
-  toast.innerHTML = '<span style="color:#22c55e;">✔</span> <span>' + escapeHTML(message) + '</span>';
+
+  const icon = document.createElement("span");
+  icon.className = "toast-check";
+  icon.textContent = "✔";
+
+  const text = document.createElement("span");
+  text.textContent = String(message || "");
+
+  toast.appendChild(icon);
+  toast.appendChild(text);
   container.appendChild(toast);
+
   setTimeout(function () {
-    toast.style.transition = "opacity 0.3s ease, transform 0.3s ease";
-    toast.style.opacity = "0";
-    toast.style.transform = "translateY(8px)";
+    toast.classList.add("toast--fadeout");
     setTimeout(function () {
-      if (toast.parentNode) toast.parentNode.removeChild(toast);
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
     }, 300);
   }, 3200);
 }
 
 function escapeHTML(str) {
+  if (str === null || str === undefined) return "";
   return String(str)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(/'/g, "&#039;")
+    .replace(/`/g, "&#x60;");
 }

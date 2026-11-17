@@ -14,9 +14,6 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <title>MultiTool Hub — All Your Essential Tools In One Place</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="theme-dark">
@@ -357,7 +354,7 @@
               </div>
 
               <div class="card-actions">
-                <a href="https://metaclean-4k.vercel.app/" target="_blank" rel="noopener" class="card-btn card-btn--purple" aria-label="Open MetaClean 4K">
+                <a href="https://metaclean-4k.vercel.app/" target="_blank" rel="noopener noreferrer" class="card-btn card-btn--purple" aria-label="Open MetaClean 4K">
                   <span>Open Tool</span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -401,7 +398,7 @@
               </div>
 
               <div class="card-actions">
-                <a href="https://sendanywhere-lite.onrender.com" target="_blank" rel="noopener" class="card-btn card-btn--cyan" aria-label="Open Send Anywhere">
+                <a href="https://sendanywhere-lite.onrender.com" target="_blank" rel="noopener noreferrer" class="card-btn card-btn--cyan" aria-label="Open Send Anywhere">
                   <span>Open Tool</span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -580,7 +577,7 @@
               <span class="feat-badge">⚡ Lossless</span>
               <span class="feat-badge">📊 Visual diff</span>
             </div>
-            <a href="https://metaclean-4k.vercel.app/" target="_blank" rel="noopener" class="card-btn card-btn--purple" aria-label="Open MetaClean 4K">
+            <a href="https://metaclean-4k.vercel.app/" target="_blank" rel="noopener noreferrer" class="card-btn card-btn--purple" aria-label="Open MetaClean 4K">
               <span>Open Tool</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -617,7 +614,7 @@
               <span class="feat-badge">⏱️ Auto-expires</span>
               <span class="feat-badge">🔑 6-digit key</span>
             </div>
-            <a href="https://sendanywhere-lite.onrender.com" target="_blank" rel="noopener" class="card-btn card-btn--cyan" aria-label="Open Send Anywhere">
+            <a href="https://sendanywhere-lite.onrender.com" target="_blank" rel="noopener noreferrer" class="card-btn card-btn--cyan" aria-label="Open Send Anywhere">
               <span>Open Tool</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -636,10 +633,7 @@
                   <path d="M12 18V5l9-2v11"></path>
                 </svg>
               </div>
-              <span class="live-badge">
-                <span class="live-dot"></span>
-                LIVE
-              </span>
+              <span class="soon-badge">SOON</span>
             </div>
             <h3 class="tool-card-title">YTmp3/4</h3>
             <p class="tool-card-desc">
@@ -656,13 +650,9 @@
               <span class="feat-badge">⏱️ Auto-expires</span>
               <span class="feat-badge">🔒 No tracking</span>
             </div>
-            <a href="http://localhost:3000" target="_blank" rel="noopener" class="card-btn card-btn--purple" aria-label="Open YTmp3/4">
-              <span>Open Tool</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
-            </a>
+            <button type="button" class="card-btn card-btn--disabled" disabled aria-disabled="true" aria-label="YTmp3/4 Coming Soon">
+              <span>Coming Soon</span>
+            </button>
           </article>
 
           <!-- Coming Soon Card -->
@@ -846,11 +836,11 @@
       <form class="modal-form" id="reqForm">
         <div class="form-group">
           <label for="reqToolName" class="form-label">Tool or Feature Name</label>
-          <input type="text" id="reqToolName" class="form-input" placeholder="e.g. PDF Compressor, Hash Generator..." required>
+          <input type="text" id="reqToolName" class="form-input" placeholder="e.g. PDF Compressor, Hash Generator..." maxlength="100" required>
         </div>
         <div class="form-group">
           <label for="reqToolDesc" class="form-label">Description / Use Case</label>
-          <textarea id="reqToolDesc" class="form-input form-textarea" rows="3" placeholder="Explain what problem this tool should solve..." required></textarea>
+          <textarea id="reqToolDesc" class="form-input form-textarea" rows="3" placeholder="Explain what problem this tool should solve..." maxlength="1000" required></textarea>
         </div>
         <div class="form-actions">
           <button type="submit" class="hero-btn-primary form-submit-btn">Submit Request</button>
@@ -891,7 +881,7 @@
         </div>
         <div class="form-group">
           <label for="issueDetails" class="form-label">Describe the Issue</label>
-          <textarea id="issueDetails" class="form-input form-textarea" rows="3" placeholder="What happened, and what did you expect to happen?" required></textarea>
+          <textarea id="issueDetails" class="form-input form-textarea" rows="3" placeholder="What happened, and what did you expect to happen?" maxlength="1000" required></textarea>
         </div>
         <div class="form-actions">
           <button type="submit" class="hero-btn-primary form-submit-btn">Send Report</button>
