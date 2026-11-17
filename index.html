@@ -2,182 +2,908 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="MultiTool — a growing collection of privacy-first, security-focused browser tools.">
-  <meta name="theme-color" content="#0d1117">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="MultiTool Hub — All Your Essential Tools. In One Place. Privacy-focused, security-ready, and productivity tools that work for you.">
+  <meta name="theme-color" content="#070914">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="MultiTool">
+  <meta name="apple-mobile-web-app-title" content="MultiTool Hub">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-  <title>MultiTool</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <title>MultiTool Hub — All Your Essential Tools In One Place</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body class="theme-dark">
 
-  <div class="bg-grid" aria-hidden="true"></div>
-  <div class="bg-glow" aria-hidden="true"></div>
+  <!-- Background Ambience & Glowing Orbs -->
+  <div class="ambient-glow glow-top" aria-hidden="true"></div>
+  <div class="ambient-glow glow-right" aria-hidden="true"></div>
+  <div class="ambient-glow glow-bottom" aria-hidden="true"></div>
+  <div class="ambient-grid" aria-hidden="true"></div>
 
-  <header class="header">
-    <div class="header-inner">
-      <a class="brand" href="/" aria-label="MultiTool home">
-        <span class="brand-icon" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="3" width="7" height="7" rx="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1"/>
-            <rect x="14" y="14" width="7" height="7" rx="1"/>
-          </svg>
-        </span>
-        <span class="brand-name">MultiTool</span>
-      </a>
-      <div class="header-right">
-        <span class="header-tag">Privacy-first tools</span>
-        <button id="installBtn" class="install-btn" hidden aria-label="Install MultiTool app">
-          &#x2B07; Install app
-        </button>
-      </div>
+  <!-- Mobile Top Header (Visible on mobile/tablet) -->
+  <header class="mobile-header" id="mobileHeader">
+    <a class="mobile-brand" href="#home" aria-label="MultiTool Hub Home">
+      <span class="brand-logo-wrap">
+        <img src="/logo.svg" alt="MultiTool Hub Logo" class="brand-logo-img" width="32" height="32">
+      </span>
+      <span class="brand-text">MultiTool <span class="brand-text-accent">Hub</span></span>
+    </a>
+    <div class="mobile-header-actions">
+      <button class="icon-btn search-trigger" aria-label="Open search" title="Search (Ctrl + K)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </button>
+      <button class="icon-btn" id="mobileMenuToggle" aria-label="Toggle menu" title="Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
     </div>
   </header>
 
-  <main id="main">
+  <!-- Mobile Drawer Overlay -->
+  <div class="mobile-drawer-overlay" id="drawerOverlay" aria-hidden="true"></div>
 
-    <section class="hero" aria-labelledby="hero-heading">
-      <div class="hero-inner">
-        <div class="hero-pill">Free &middot; No account &middot; No tracking</div>
-        <h1 id="hero-heading" class="hero-title">
-          Tools that work<br>
-          <span class="gradient-text">for you, not against you.</span>
-        </h1>
-        <p class="hero-sub">
-          A growing collection of privacy-first, security-focused utilities.<br>
-          Everything runs in your browser or over encrypted connections.
-        </p>
+  <!-- Main App Shell -->
+  <div class="app-layout">
+
+    <!-- Desktop Sidebar -->
+    <aside class="sidebar" id="sidebar" aria-label="Main Navigation">
+      <div class="sidebar-top">
+        <a class="brand" href="#home" aria-label="MultiTool Hub Home">
+          <span class="brand-logo-wrap">
+            <img src="/logo.svg" alt="MultiTool Hub Logo" class="brand-logo-img" width="34" height="34">
+          </span>
+          <span class="brand-text">MultiTool <span class="brand-text-accent">Hub</span></span>
+        </a>
       </div>
-    </section>
 
-    <section class="tools-section" aria-label="Available tools">
-      <div class="section-label">TOOLS</div>
-      <div class="tools-grid">
+      <!-- Main Navigation Menu -->
+      <nav class="sidebar-nav">
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#home" class="nav-link active" id="navHome">
+              <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              <span>Home</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#all-tools" class="nav-link" id="navAllTools">
+              <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+              </svg>
+              <span>All Tools</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#categories" class="nav-link" id="navCategories">
+              <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span>Categories</span>
+              <svg class="nav-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </a>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link nav-btn" id="navUpdates" aria-label="View Updates">
+              <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+              </svg>
+              <span>Updates</span>
+              <span class="nav-badge-dot"></span>
+            </button>
+          </li>
+        </ul>
+      </nav>
 
-        <!-- MetaClean 4K -->
-        <article class="tool-card" aria-labelledby="tool-meta-title">
-          <div class="tool-card-top">
-            <div class="tool-icon tool-icon--meta" aria-hidden="true">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                <path d="m9 12 2 2 4-4"/>
+      <!-- Quick Actions Card -->
+      <div class="sidebar-quick-actions">
+        <div class="quick-actions-label">Quick Actions</div>
+        <button class="quick-action-btn search-trigger" aria-label="Quick search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span>Search (Ctrl + K)</span>
+        </button>
+        <button class="quick-action-btn" id="qaNewRequest" aria-label="Request a new tool">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>New Tool Request</span>
+        </button>
+        <button class="quick-action-btn" id="qaReportIssue" aria-label="Report an issue">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+            <line x1="4" y1="22" x2="4" y2="15"></line>
+          </svg>
+          <span>Report an Issue</span>
+        </button>
+      </div>
+
+      <!-- User Profile / Plan Footer -->
+      <div class="sidebar-user-card">
+        <div class="user-avatar-wrap">
+          <div class="user-avatar-hex">
+            <span class="user-avatar-letter">M</span>
+          </div>
+        </div>
+        <div class="user-info">
+          <div class="user-name">NeoVector</div>
+          <div class="user-plan">Free Plan</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Stage -->
+    <main class="main-content" id="mainContent">
+
+      <!-- Desktop Topbar -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <span class="version-badge">v1.0.0</span>
+        </div>
+        <div class="topbar-right">
+          <!-- Search Input Pill -->
+          <button class="topbar-search search-trigger" aria-label="Search tools">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <span class="search-placeholder">Search tools...</span>
+            <kbd class="search-shortcut">Ctrl + K</kbd>
+          </button>
+
+          <!-- Notification Bell -->
+          <button class="topbar-btn" id="notifBtn" aria-label="Notifications" title="Notifications">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span class="notif-dot" aria-label="New notification"></span>
+          </button>
+
+          <!-- Theme Toggle -->
+          <button class="topbar-btn" id="themeBtn" aria-label="Toggle Theme" title="Toggle Theme">
+            <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          </button>
+
+          <!-- PWA Install Button -->
+          <button id="installBtn" class="topbar-install-btn" hidden aria-label="Install MultiTool App">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Install App</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Hero Section -->
+      <section class="hero-section" id="home" aria-labelledby="heroHeading">
+        <div class="hero-content">
+          <h1 id="heroHeading" class="hero-title">
+            <span class="hero-title-desktop">
+              A Single Hub for<br>
+              <span class="hero-gradient">Powerful Utilities</span>
+            </span>
+            <span class="hero-title-mobile">
+              Tools that work<br>
+              <span class="hero-gradient">for you, not against you.</span>
+            </span>
+          </h1>
+          <p class="hero-subtitle">
+            Privacy-focused, security-ready, and productivity tools that work for you — all in one place.
+          </p>
+          <div class="hero-actions">
+            <a href="#featured-tools" class="hero-btn-primary" id="btnExplore">
+              <span>Explore Tools</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+            <button class="hero-btn-secondary" id="btnWhatsNew">
+              <span>What's New</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3D Glowing Hexagon Emblem Graphic -->
+        <div class="hero-graphic" aria-hidden="true">
+          <div class="emblem-container">
+            <img src="/assets/hero-emblem.svg" alt="MultiTool 3D Emblem" class="emblem-img" width="420" height="360">
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Stats Row (4 Metric Cards) -->
+      <section class="stats-section" aria-label="Platform Statistics">
+        <div class="stats-grid">
+          <!-- Stat 1 -->
+          <div class="stat-card">
+            <div class="stat-icon-wrap stat-icon--cyan">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
               </svg>
             </div>
-            <div class="tool-badge tool-badge--live">Live</div>
+            <div class="stat-info">
+              <div class="stat-value" id="statToolsAvailable">3</div>
+              <div class="stat-label">Tools Available</div>
+            </div>
           </div>
-          <h2 id="tool-meta-title" class="tool-title">MetaClean 4K</h2>
-          <p class="tool-desc">
-            Strip EXIF, XMP, IPTC and C2PA provenance data from images &mdash; without touching a single pixel. Supports JPEG, PNG, WEBP, TIFF, HEIC, AVIF.
-          </p>
-          <ul class="tool-tags" aria-label="Supported formats">
-            <li>JPEG</li><li>PNG</li><li>WEBP</li><li>TIFF</li><li>HEIC</li><li>AVIF</li>
-          </ul>
-          <div class="tool-features">
-            <span class="feat">&#x1F512; Privacy-first</span>
-            <span class="feat">&#x26A1; Lossless</span>
-            <span class="feat">&#x1F4CA; Visual diff</span>
+
+          <!-- Stat 2 -->
+          <div class="stat-card">
+            <div class="stat-icon-wrap stat-icon--magenta">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value" id="statNewThisMonth">3</div>
+              <div class="stat-label">New This Month</div>
+            </div>
           </div>
-          <a class="tool-btn" href="https://metaclean-4k.vercel.app/" target="_blank" rel="noopener" aria-label="Open MetaClean 4K">
-            Open tool
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+
+          <!-- Stat 3 -->
+          <div class="stat-card">
+            <div class="stat-icon-wrap stat-icon--teal">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <path d="m9 12 2 2 4-4"></path>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">100%</div>
+              <div class="stat-label">Privacy Focused</div>
+            </div>
+          </div>
+
+          <!-- Stat 4 -->
+          <div class="stat-card">
+            <div class="stat-icon-wrap stat-icon--purple">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">Open</div>
+              <div class="stat-label">Modular &amp; Extensible</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Featured Tools Section -->
+      <section class="section-featured" id="featured-tools" aria-labelledby="featuredHeading">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <svg class="section-star-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            <h2 id="featuredHeading" class="section-title">Featured Tools</h2>
+          </div>
+          <a href="#all-tools" class="section-link" id="linkViewAll">
+            <span>View All Tools</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
           </a>
-        </article>
+        </div>
 
-        <!-- SendAnywhere-lite -->
-        <article class="tool-card" aria-labelledby="tool-send-title">
-          <div class="tool-card-top">
-            <div class="tool-icon tool-icon--send" aria-hidden="true">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2"/>
-                <path d="M8 21h8M12 17v4"/>
-                <path d="m9 10 3-3 3 3M12 7v6"/>
-              </svg>
+        <div class="featured-grid">
+          <!-- Card 1: MetaClean 4K -->
+          <article class="featured-card featured-card--meta">
+            <div class="featured-card-body">
+              <div class="card-top">
+                <div class="tool-icon-box tool-icon--purple" aria-hidden="true">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                </div>
+                <span class="live-badge">
+                  <span class="live-dot"></span>
+                  LIVE
+                </span>
+              </div>
+
+              <h3 class="card-title">MetaClean 4K</h3>
+              <p class="card-desc">
+                Strip EXIF, XMP, IPTC and C2PA metadata from images without changing the visual quality.
+              </p>
+
+              <div class="tag-row" aria-label="Supported file formats">
+                <span class="format-tag">JPEG</span>
+                <span class="format-tag">PNG</span>
+                <span class="format-tag">WEBP</span>
+                <span class="format-tag">TIFF</span>
+              </div>
+
+              <div class="card-actions">
+                <a href="https://metaclean-4k.vercel.app/" target="_blank" rel="noopener" class="card-btn card-btn--purple" aria-label="Open MetaClean 4K">
+                  <span>Open Tool</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </a>
+              </div>
             </div>
-            <div class="tool-badge tool-badge--live">Live</div>
+
+            <!-- 3D Photo Illustration Preview -->
+            <div class="card-preview-art card-preview-art--meta" aria-hidden="true">
+              <img src="/assets/metaclean-art.svg" alt="" class="card-preview-img" width="140" height="120">
+            </div>
+          </article>
+
+          <!-- Card 2: Send Anywhere -->
+          <article class="featured-card featured-card--send">
+            <div class="featured-card-body">
+              <div class="card-top">
+                <div class="tool-icon-box tool-icon--cyan" aria-hidden="true">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                </div>
+                <span class="live-badge">
+                  <span class="live-dot"></span>
+                  LIVE
+                </span>
+              </div>
+
+              <h3 class="card-title">Send Anywhere</h3>
+              <p class="card-desc">
+                Transfer any file to anyone with a 6-digit key. AES-256-GCM encrypted and auto-expiring.
+              </p>
+
+              <div class="tag-row" aria-label="Features">
+                <span class="format-tag">Any File</span>
+                <span class="format-tag">Up to 3 GB</span>
+                <span class="format-tag">30 min</span>
+              </div>
+
+              <div class="card-actions">
+                <a href="https://sendanywhere-lite.onrender.com" target="_blank" rel="noopener" class="card-btn card-btn--cyan" aria-label="Open Send Anywhere">
+                  <span>Open Tool</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </a>
+              </div>
+            </div>
+
+            <!-- 3D Paper Airplane Illustration Preview -->
+            <div class="card-preview-art card-preview-art--send" aria-hidden="true">
+              <img src="/assets/sendanywhere-art.svg" alt="" class="card-preview-img" width="140" height="120">
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Tool Categories Section -->
+      <section class="section-categories" id="categories" aria-labelledby="catHeading">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <svg class="section-target-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="6"></circle>
+              <circle cx="12" cy="12" r="2"></circle>
+            </svg>
+            <h2 id="catHeading" class="section-title">Tool Categories</h2>
           </div>
-          <h2 id="tool-send-title" class="tool-title">Send Anywhere</h2>
-          <p class="tool-desc">
-            Transfer any file to anyone with a 6-digit key. Files are AES-256-GCM encrypted at rest. No account needed &mdash; transfers auto-expire in 30 minutes.
-          </p>
-          <ul class="tool-tags" aria-label="Features">
-            <li>Any file type</li><li>Up to 2 GB</li><li>50 files</li>
-          </ul>
-          <div class="tool-features">
-            <span class="feat">&#x1F510; AES-256-GCM</span>
-            <span class="feat">&#x23F1;&#xFE0F; Auto-expires</span>
-            <span class="feat">&#x1F511; 6-digit key</span>
-          </div>
-          <a class="tool-btn" href="https://sendanywhere-lite.onrender.com" target="_blank" rel="noopener" aria-label="Open Send Anywhere">
-            Open tool
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          <a href="#all-tools" class="section-link mobile-only">
+            <span>All</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
           </a>
-        </article>
+        </div>
 
-        <!-- Coming soon -->
-        <article class="tool-card tool-card--soon" aria-labelledby="tool-soon-title">
-          <div class="tool-card-top">
-            <div class="tool-icon tool-icon--soon" aria-hidden="true">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 8v4l3 3"/>
+        <div class="categories-grid" id="categoriesGrid">
+          <!-- Category 1: File Utilities -->
+          <button class="category-card" data-cat="file" aria-label="Filter by File Utilities">
+            <div class="cat-icon cat-icon--cyan">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
               </svg>
             </div>
-            <div class="tool-badge tool-badge--soon">Soon</div>
+            <div class="cat-content">
+              <div class="cat-name">File Utilities</div>
+              <div class="cat-count">1 tool</div>
+            </div>
+          </button>
+
+          <!-- Category 2: Privacy & Security -->
+          <button class="category-card" data-cat="security" aria-label="Filter by Privacy and Security">
+            <div class="cat-icon cat-icon--pink">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </div>
+            <div class="cat-content">
+              <div class="cat-name">Privacy &amp; Security</div>
+              <div class="cat-count">1 tool</div>
+            </div>
+          </button>
+
+          <!-- Category 3: Network Tools -->
+          <button class="category-card" data-cat="network" aria-label="Filter by Network Tools">
+            <div class="cat-icon cat-icon--blue">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                <line x1="12" y1="20" x2="12.01" y2="20"></line>
+              </svg>
+            </div>
+            <div class="cat-content">
+              <div class="cat-name">Network Tools</div>
+              <div class="cat-count">1 tool</div>
+            </div>
+          </button>
+
+          <!-- Category 4: Developer Tools -->
+          <button class="category-card" data-cat="developer" aria-label="Filter by Developer Tools">
+            <div class="cat-icon cat-icon--violet">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+            </div>
+            <div class="cat-content">
+              <div class="cat-name">Developer Tools</div>
+              <div class="cat-count">1 tool</div>
+            </div>
+          </button>
+
+          <!-- Category 5: Media Tools -->
+          <button class="category-card" data-cat="media" aria-label="Filter by Media Tools">
+            <div class="cat-icon cat-icon--magenta">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+            </div>
+            <div class="cat-content">
+              <div class="cat-name">Media Tools</div>
+              <div class="cat-count">1 tool</div>
+            </div>
+          </button>
+
+          <!-- Category 6: All Tools -->
+          <button class="category-card" data-cat="all" aria-label="View All Tools">
+            <div class="cat-icon cat-icon--teal">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+              </svg>
+            </div>
+            <div class="cat-content">
+              <div class="cat-name">All Tools</div>
+              <div class="cat-count">3 tools</div>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <!-- All Tools Directory Section (Includes existing YTmp3/4, Coming Soon) -->
+      <section class="section-directory" id="all-tools" aria-labelledby="dirHeading">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <svg class="section-grid-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+              <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+              <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+              <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+            </svg>
+            <h2 id="dirHeading" class="section-title">All Utilities &amp; Services</h2>
           </div>
-          <h2 id="tool-soon-title" class="tool-title">More tools</h2>
-          <p class="tool-desc">
-            New tools are added regularly. Each one is built with the same principles &mdash; no tracking, no accounts, no nonsense. Got an idea? Build it.
-          </p>
-          <div class="coming-soon-label">New tool in progress&hellip;</div>
-        </article>
+          <div class="directory-filter-badges" id="dirFilterRow">
+            <button class="filter-pill active" data-filter="all">All</button>
+            <button class="filter-pill" data-filter="file">File Utilities</button>
+            <button class="filter-pill" data-filter="security">Security</button>
+            <button class="filter-pill" data-filter="media">Media</button>
+          </div>
+        </div>
 
+        <div class="directory-grid" id="toolsGrid">
+          <!-- MetaClean 4K -->
+          <article class="tool-card" data-categories="file security">
+            <div class="tool-card-head">
+              <div class="tool-icon-box tool-icon--purple" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+              </div>
+              <span class="live-badge">
+                <span class="live-dot"></span>
+                LIVE
+              </span>
+            </div>
+            <h3 class="tool-card-title">MetaClean 4K</h3>
+            <p class="tool-card-desc">
+              Strip EXIF, XMP, IPTC and C2PA provenance metadata from images without altering visual pixels.
+            </p>
+            <div class="tag-row">
+              <span class="format-tag">JPEG</span>
+              <span class="format-tag">PNG</span>
+              <span class="format-tag">WEBP</span>
+              <span class="format-tag">TIFF</span>
+              <span class="format-tag">HEIC</span>
+              <span class="format-tag">AVIF</span>
+            </div>
+            <div class="tool-card-features">
+              <span class="feat-badge">🔒 Privacy-first</span>
+              <span class="feat-badge">⚡ Lossless</span>
+              <span class="feat-badge">📊 Visual diff</span>
+            </div>
+            <a href="https://metaclean-4k.vercel.app/" target="_blank" rel="noopener" class="card-btn card-btn--purple" aria-label="Open MetaClean 4K">
+              <span>Open Tool</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+          </article>
+
+          <!-- Send Anywhere -->
+          <article class="tool-card" data-categories="file security network">
+            <div class="tool-card-head">
+              <div class="tool-icon-box tool-icon--cyan" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </div>
+              <span class="live-badge">
+                <span class="live-dot"></span>
+                LIVE
+              </span>
+            </div>
+            <h3 class="tool-card-title">Send Anywhere</h3>
+            <p class="tool-card-desc">
+              Transfer any file to anyone with a 6-digit key. AES-256-GCM encrypted and auto-expiring in 30 minutes.
+            </p>
+            <div class="tag-row">
+              <span class="format-tag">Any File</span>
+              <span class="format-tag">Up to 3 GB</span>
+              <span class="format-tag">50 files</span>
+            </div>
+            <div class="tool-card-features">
+              <span class="feat-badge">🔐 AES-256-GCM</span>
+              <span class="feat-badge">⏱️ Auto-expires</span>
+              <span class="feat-badge">🔑 6-digit key</span>
+            </div>
+            <a href="https://sendanywhere-lite.onrender.com" target="_blank" rel="noopener" class="card-btn card-btn--cyan" aria-label="Open Send Anywhere">
+              <span>Open Tool</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+          </article>
+
+          <!-- YTmp3/4 (Existing feature preserved) -->
+          <article class="tool-card" data-categories="media">
+            <div class="tool-card-head">
+              <div class="tool-icon-box tool-icon--coral" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="9" cy="18" r="3"></circle>
+                  <circle cx="18" cy="16" r="3"></circle>
+                  <path d="M12 18V5l9-2v11"></path>
+                </svg>
+              </div>
+              <span class="live-badge">
+                <span class="live-dot"></span>
+                LIVE
+              </span>
+            </div>
+            <h3 class="tool-card-title">YTmp3/4</h3>
+            <p class="tool-card-desc">
+              Convert YouTube videos to MP4 or MP3. Pick your quality, hit convert — files are processed and auto-deleted after 1 hour.
+            </p>
+            <div class="tag-row">
+              <span class="format-tag">MP4</span>
+              <span class="format-tag">MP3</span>
+              <span class="format-tag">Up to 4K</span>
+              <span class="format-tag">320 kbps</span>
+            </div>
+            <div class="tool-card-features">
+              <span class="feat-badge">🎥 Video + Audio</span>
+              <span class="feat-badge">⏱️ Auto-expires</span>
+              <span class="feat-badge">🔒 No tracking</span>
+            </div>
+            <a href="http://localhost:3000" target="_blank" rel="noopener" class="card-btn card-btn--purple" aria-label="Open YTmp3/4">
+              <span>Open Tool</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+          </article>
+
+          <!-- Coming Soon Card -->
+          <article class="tool-card tool-card--soon" data-categories="all">
+            <div class="tool-card-head">
+              <div class="tool-icon-box tool-icon--muted" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <span class="soon-badge">SOON</span>
+            </div>
+            <h3 class="tool-card-title">More Tools in Development</h3>
+            <p class="tool-card-desc">
+              New utilities added every cycle. Built with zero tracking, offline capability, and client-side encryption.
+            </p>
+            <div class="tag-row">
+              <span class="format-tag">Modular</span>
+              <span class="format-tag">Zero Cloud Data</span>
+            </div>
+            <div class="coming-soon-pill">New tool in progress&hellip;</div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Principles Section -->
+      <section class="section-principles" aria-labelledby="principlesHeading">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <svg class="section-shield-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <h2 id="principlesHeading" class="section-title">Core Architecture &amp; Values</h2>
+          </div>
+        </div>
+
+        <div class="principles-grid">
+          <div class="principle-card">
+            <div class="principle-icon-wrap" aria-hidden="true">🔒</div>
+            <h3 class="principle-name">Privacy by default</h3>
+            <p class="principle-text">No accounts. No telemetry. No third-party analytics. Your files and data remain strictly in your control.</p>
+          </div>
+          <div class="principle-card">
+            <div class="principle-icon-wrap" aria-hidden="true">⚡</div>
+            <h3 class="principle-name">Fast &amp; Free</h3>
+            <p class="principle-text">Every tool is free to use without artificial paywalls, rate limits, or signup barriers.</p>
+          </div>
+          <div class="principle-card">
+            <div class="principle-icon-wrap" aria-hidden="true">🛠️</div>
+            <h3 class="principle-name">Modular &amp; Extensible</h3>
+            <p class="principle-text">Built to plug into new utility workflows effortlessly with a unified design system and PWA support.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dashboard Footer -->
+      <footer class="app-footer">
+        <div class="footer-content">
+          <div class="footer-brand">
+            <img src="/logo.svg" alt="" width="22" height="22">
+            <span>MultiTool <strong>Hub</strong></span>
+          </div>
+          <div class="footer-divider" aria-hidden="true">·</div>
+          <div class="footer-motto">All Your Essential Tools. In One Place.</div>
+          <div class="footer-divider" aria-hidden="true">·</div>
+          <div class="footer-copy">v1.0.0 · Offline Ready</div>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Mobile Bottom Navigation Bar (Visible only on mobile devices) -->
+  <nav class="mobile-bottom-nav" aria-label="Mobile Bottom Navigation">
+    <a href="#home" class="bottom-nav-item active" id="bnavHome">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span>Home</span>
+    </a>
+    <a href="#all-tools" class="bottom-nav-item" id="bnavAllTools">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+        <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+        <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+        <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+      </svg>
+      <span>All Tools</span>
+    </a>
+    <button class="bottom-nav-item" id="bnavUpdates" aria-label="Updates">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+      <span>Updates</span>
+    </button>
+    </nav>
+
+  <!-- Interactive Search Dialog Modal (Ctrl + K) -->
+  <dialog class="modal-dialog" id="searchModal" aria-labelledby="searchModalTitle">
+    <div class="modal-backdrop" id="searchBackdrop"></div>
+    <div class="modal-card">
+      <div class="modal-search-bar">
+        <svg class="search-modal-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="modalSearchInput" class="modal-search-input" placeholder="Type to search all utilities..." autocomplete="off">
+        <button class="modal-close-btn" id="searchModalClose" aria-label="Close search">ESC</button>
       </div>
-    </section>
-
-    <section class="principles" aria-labelledby="principles-heading">
-      <div class="section-label">PRINCIPLES</div>
-      <h2 id="principles-heading" class="sr-only">Our principles</h2>
-      <div class="principles-grid">
-        <div class="principle">
-          <div class="principle-icon" aria-hidden="true">&#x1F512;</div>
-          <div class="principle-title">Privacy by default</div>
-          <div class="principle-desc">No accounts. No tracking. No analytics. Your files never leave your control.</div>
-        </div>
-        <div class="principle">
-          <div class="principle-icon" aria-hidden="true">&#x26A1;</div>
-          <div class="principle-title">Fast &amp; free</div>
-          <div class="principle-desc">Every tool is free to use. No paywalls, no rate limits for normal use.</div>
-        </div>
-        <div class="principle">
-          <div class="principle-icon" aria-hidden="true">&#x1F6E0;&#xFE0F;</div>
-          <div class="principle-title">Always growing</div>
-          <div class="principle-desc">New tools are added continuously. Each one solves a real problem.</div>
-        </div>
+      <div class="modal-results-list" id="modalResultsList">
+        <!-- Injected via JavaScript -->
       </div>
-    </section>
-
-  </main>
-
-  <footer class="footer">
-    <div class="footer-inner">
-      <span class="footer-brand">MultiTool</span>
-      <span class="footer-sep" aria-hidden="true">&middot;</span>
-      <span class="footer-copy">Privacy-first tools. Built with care.</span>
+      <div class="modal-footer">
+        <span class="modal-tip"><kbd>↑</kbd> <kbd>↓</kbd> to navigate</span>
+        <span class="modal-tip"><kbd>↵</kbd> to select</span>
+        <span class="modal-tip"><kbd>ESC</kbd> to dismiss</span>
+      </div>
     </div>
-  </footer>
+  </dialog>
 
-<script src="/app.js" defer></script>
+  <!-- Updates / What's New Modal -->
+  <dialog class="modal-dialog" id="updatesModal" aria-labelledby="updatesModalTitle">
+    <div class="modal-backdrop" id="updatesBackdrop"></div>
+    <div class="modal-card modal-card--narrow">
+      <div class="modal-head">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge modal-icon--purple">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </div>
+          <div>
+            <h3 id="updatesModalTitle" class="modal-title">What's New in MultiTool Hub</h3>
+            <div class="modal-sub">Release Notes — Version 1.0.0</div>
+          </div>
+        </div>
+        <button class="modal-close-icon" id="updatesModalClose" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body" id="updatesModalBody">
+        <div class="update-entry">
+          <div class="update-tag">v1.0.0 · Core Update</div>
+          <h4 class="update-title">Brand New Dashboard &amp; 3D Glass Design System</h4>
+          <p class="update-desc">Complete visual overhaul matching the official MultiTool Hub branding. Responsive sidebar navigation, desktop &amp; mobile optimized viewports, and unified utility hubs.</p>
+        </div>
+        <div class="update-entry">
+          <div class="update-tag">Tool Integration</div>
+          <h4 class="update-title">MetaClean 4K Live</h4>
+          <p class="update-desc">Lossless metadata stripping for JPEG, PNG, WEBP, TIFF, HEIC, and AVIF. Visual difference viewer and privacy verification.</p>
+        </div>
+        <div class="update-entry">
+          <div class="update-tag">Security</div>
+          <h4 class="update-title">Send Anywhere Encrypted Transfer</h4>
+          <p class="update-desc">Transfer up to 3 GB with AES-256-GCM encryption and 6-digit key auto-expiration.</p>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- New Tool Request Modal -->
+  <dialog class="modal-dialog" id="requestModal" aria-labelledby="reqModalTitle">
+    <div class="modal-backdrop" id="reqBackdrop"></div>
+    <div class="modal-card modal-card--narrow">
+      <div class="modal-head">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge modal-icon--cyan">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </div>
+          <div>
+            <h3 id="reqModalTitle" class="modal-title">Request a Utility</h3>
+            <div class="modal-sub">Suggest a tool for MultiTool Hub</div>
+          </div>
+        </div>
+        <button class="modal-close-icon" id="reqModalClose" aria-label="Close">✕</button>
+      </div>
+      <form class="modal-form" id="reqForm">
+        <div class="form-group">
+          <label for="reqToolName" class="form-label">Tool or Feature Name</label>
+          <input type="text" id="reqToolName" class="form-input" placeholder="e.g. PDF Compressor, Hash Generator..." required>
+        </div>
+        <div class="form-group">
+          <label for="reqToolDesc" class="form-label">Description / Use Case</label>
+          <textarea id="reqToolDesc" class="form-input form-textarea" rows="3" placeholder="Explain what problem this tool should solve..." required></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="hero-btn-primary form-submit-btn">Submit Request</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Report an Issue Modal -->
+  <dialog class="modal-dialog" id="issueModal" aria-labelledby="issueModalTitle">
+    <div class="modal-backdrop" id="issueBackdrop"></div>
+    <div class="modal-card modal-card--narrow">
+      <div class="modal-head">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge modal-icon--coral">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+              <line x1="4" y1="22" x2="4" y2="15"></line>
+            </svg>
+          </div>
+          <div>
+            <h3 id="issueModalTitle" class="modal-title">Report an Issue</h3>
+            <div class="modal-sub">We'll review and address it promptly</div>
+          </div>
+        </div>
+        <button class="modal-close-icon" id="issueModalClose" aria-label="Close">✕</button>
+      </div>
+      <form class="modal-form" id="issueForm">
+        <div class="form-group">
+          <label for="issueTool" class="form-label">Affected Tool</label>
+          <select id="issueTool" class="form-input form-select">
+            <option value="general">MultiTool Hub (General UI / Navigation)</option>
+            <option value="metaclean">MetaClean 4K</option>
+            <option value="sendanywhere">Send Anywhere</option>
+            <option value="ytmp">YTmp3/4</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="issueDetails" class="form-label">Describe the Issue</label>
+          <textarea id="issueDetails" class="form-input form-textarea" rows="3" placeholder="What happened, and what did you expect to happen?" required></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="hero-btn-primary form-submit-btn">Send Report</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- Scripts -->
+  <script src="/app.js" defer></script>
 </body>
 </html>
-

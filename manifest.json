@@ -1,17 +1,17 @@
-﻿{
-  "name": "MultiTool",
-  "short_name": "MultiTool",
-  "description": "A growing collection of privacy-first, security-focused tools.",
+{
+  "name": "MultiTool Hub",
+  "short_name": "MultiTool Hub",
+  "description": "All Your Essential Tools. In One Place. Privacy-focused, security-ready, and productivity tools that work for you.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "theme_color": "#0d1117",
-  "background_color": "#0d1117",
+  "theme_color": "#070914",
+  "background_color": "#070914",
   "categories": ["utilities", "productivity"],
   "icons": [
-    { "src": "/favicon-32.png",        "sizes": "32x32",   "type": "image/png" },
-    { "src": "/icon-192.png",          "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/icon-512.png",          "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/apple-touch-icon.png",  "sizes": "180x180", "type": "image/png" }
+    { "src": "/favicon-32.png",       "sizes": "32x32",   "type": "image/png" },
+    { "src": "/icon-192.png",         "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png",         "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
   ]
 }

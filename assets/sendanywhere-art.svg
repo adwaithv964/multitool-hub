@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 140" width="100%" height="100%">
+  <defs>
+    <radialGradient id="sendAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.45"/>
+      <stop offset="60%" stop-color="#0284c7" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#070914" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="planeTop" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e0f2fe"/>
+      <stop offset="35%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <linearGradient id="planeKeel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+
+    <linearGradient id="planeWingRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
+
+    <linearGradient id="trailGrad" x1="100%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#00f0ff" stop-opacity="0"/>
+      <stop offset="70%" stop-color="#38bdf8" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.9"/>
+    </linearGradient>
+
+    <filter id="planeGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Ambient Electric Cyan Aura -->
+  <circle cx="85" cy="75" r="55" fill="url(#sendAura)"/>
+
+  <!-- Motion Light Trails Behind Plane -->
+  <path d="M 45 105 L 82 82" stroke="url(#trailGrad)" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+  <path d="M 65 118 L 98 88" stroke="url(#trailGrad)" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  <path d="M 85 125 L 110 95" stroke="url(#trailGrad)" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- 3D Isometric Paper Airplane -->
+  <g transform="translate(25, 20) rotate(-15 60 45)" filter="url(#planeGlow)">
+    <!-- Plane Drop Shadow -->
+    <polygon points="110,35 15,95 55,75 75,98" fill="#000000" opacity="0.5" transform="translate(0, 10)"/>
+
+    <!-- Left Main Wing (Illuminated top facet) -->
+    <polygon points="112,28 15,75 58,62" fill="url(#planeTop)"/>
+
+    <!-- Keel / Underbody (Dark shadow facet) -->
+    <polygon points="112,28 58,62 65,85" fill="url(#planeKeel)"/>
+
+    <!-- Right Wing (Angle facet) -->
+    <polygon points="112,28 65,85 85,72" fill="url(#planeWingRight)"/>
+
+    <!-- Fold Crease Specular Edge Highlight -->
+    <line x1="112" y1="28" x2="58" y2="62" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.9"/>
+  </g>
+</svg>
