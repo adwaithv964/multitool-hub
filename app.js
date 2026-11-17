@@ -1,51 +1,18 @@
-// MultiTool Hub — Core Application Logic & Security-Hardened Registry
-// Strict zero-trust DOM construction, origin validation, and offline persistence.
+// MultiTool Hub — Warm Editorial SaaS Application Architecture
+// Zero-Trust Safe DOM Construction, Local Persistence, and Strict Origin Sandboxing.
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. SERVICE WORKER REGISTRATION
+// 1. SERVICE WORKER REGISTRATION (OFFLINE SHELL)
 // ─────────────────────────────────────────────────────────────────────────────
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
-    navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () {
-      // Service worker registration failures handled gracefully
-    });
+    navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () {});
   });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. PWA INSTALL PROMPT SUPPORT
-// ─────────────────────────────────────────────────────────────────────────────
-let deferredPrompt = null;
-const installBtn = document.getElementById("installBtn");
-
-window.addEventListener("beforeinstallprompt", function (e) {
-  e.preventDefault();
-  deferredPrompt = e;
-  if (installBtn) installBtn.hidden = false;
-});
-
-window.addEventListener("appinstalled", function () {
-  deferredPrompt = null;
-  if (installBtn) installBtn.hidden = true;
-});
-
-if (installBtn) {
-  installBtn.addEventListener("click", function () {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(function () {
-      deferredPrompt = null;
-      installBtn.hidden = true;
-    }).catch(function () {
-      deferredPrompt = null;
-    });
-  });
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 3. SECURE STORAGE WRAPPER
-// Guards against SecurityError (e.g. cookies disabled, private browsing sandbox)
-// and handles quota exceeded exceptions cleanly.
+// 2. SECURE CLIENT PERSISTENCE WRAPPER
+// Protects against unhandled storage exceptions in strict privacy contexts.
 // ─────────────────────────────────────────────────────────────────────────────
 const safeStorage = {
   getItem: function (key) {
@@ -53,9 +20,7 @@ const safeStorage = {
       if (typeof window !== "undefined" && window.localStorage) {
         return window.localStorage.getItem(key);
       }
-    } catch (err) {
-      // Storage unavailable or restricted
-    }
+    } catch (err) {}
     return null;
   },
   setItem: function (key, value) {
@@ -63,16 +28,13 @@ const safeStorage = {
       if (typeof window !== "undefined" && window.localStorage) {
         window.localStorage.setItem(key, String(value));
       }
-    } catch (err) {
-      // Storage quota exceeded or disabled
-    }
+    } catch (err) {}
   }
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. URL VALIDATION & ORIGIN ALLOWLISTING
-// Prevents javascript:, data:, localhost, loopback, private RFC-1918 networks,
-// non-standard ports, and unapproved external origins.
+// 3. STRICT TOOL URL VALIDATOR
+// Mandatory HTTPS, blocks loopback/localhost, private subnets, credentials.
 // ─────────────────────────────────────────────────────────────────────────────
 const APPROVED_TOOL_ORIGINS = new Set([
   "https://metaclean-4k.vercel.app",
@@ -85,25 +47,11 @@ function isValidToolUrl(urlString) {
   }
   try {
     const parsed = new URL(urlString);
-    
-    // 1. Mandatory HTTPS
-    if (parsed.protocol !== "https:") {
-      return false;
-    }
-    
-    // 2. Disallow embedded credentials (http://user:pass@host)
-    if (parsed.username || parsed.password) {
-      return false;
-    }
-    
-    // 3. Disallow unexpected non-standard ports
-    if (parsed.port && parsed.port !== "443" && parsed.port !== "") {
-      return false;
-    }
-    
+    if (parsed.protocol !== "https:") return false;
+    if (parsed.username || parsed.password) return false;
+    if (parsed.port && parsed.port !== "443" && parsed.port !== "") return false;
+
     const hostname = parsed.hostname.toLowerCase();
-    
-    // 4. Disallow localhost, loopback, and local domain suffixes
     if (
       hostname === "localhost" ||
       hostname.endsWith(".localhost") ||
@@ -114,20 +62,16 @@ function isValidToolUrl(urlString) {
     ) {
       return false;
     }
-    
-    // 5. Disallow IPv4 private network ranges (10.0.0.0/8, 192.168.0.0/16, 172.16.0.0/12)
+
     if (hostname.startsWith("10.") || hostname.startsWith("192.168.")) {
       return false;
     }
     const ip172Match = hostname.match(/^172\.(\d+)\./);
     if (ip172Match) {
       const octet = parseInt(ip172Match[1], 10);
-      if (octet >= 16 && octet <= 31) {
-        return false;
-      }
+      if (octet >= 16 && octet <= 31) return false;
     }
-    
-    // 6. Must belong to an explicitly approved production tool origin
+
     return APPROVED_TOOL_ORIGINS.has(parsed.origin);
   } catch (err) {
     return false;
@@ -135,56 +79,47 @@ function isValidToolUrl(urlString) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. CENTRAL TOOLS & CATEGORY REGISTRIES
+// 4. CENTRAL TOOL & CATEGORY REGISTRIES
 // ─────────────────────────────────────────────────────────────────────────────
 const TOOLS_DATA = [
   {
     id: "metaclean",
     title: "MetaClean 4K",
-    description: "Strip EXIF, XMP, IPTC and C2PA provenance metadata from images without altering visual pixels.",
+    description: "Strip EXIF, XMP, IPTC and C2PA metadata from images without altering visual pixels.",
     url: "https://metaclean-4k.vercel.app/",
     categories: ["file", "security"],
-    tags: ["JPEG", "PNG", "WEBP", "TIFF", "HEIC", "AVIF"],
-    features: ["🔒 Privacy-first", "⚡ Lossless", "📊 Visual diff"],
+    tags: ["JPEG", "PNG", "WEBP", "TIFF", "+3"],
     live: true,
     featured: true,
-    iconBoxClass: "tool-icon--purple",
-    iconId: "metaclean",
-    addedDate: "2026-09-01",
-    updateTag: "v1.0.0 · Core Integration",
-    updateNote: "Lossless metadata stripping for JPEG, PNG, WEBP, TIFF, HEIC, and AVIF. Visual difference viewer and privacy verification."
+    iconId: "image",
+    iconBoxClass: "tool-icon--orange",
+    artImg: "/assets/images/tools/metaclean-art.svg"
   },
   {
     id: "sendanywhere",
     title: "Send Anywhere",
-    description: "Transfer any file to anyone with a 6-digit key. AES-256-GCM encrypted and auto-expiring in 30 minutes.",
+    description: "Transfer any file to anyone with a 6-digit key. AES-256-GCM encrypted and auto-expiring.",
     url: "https://sendanywhere-lite.onrender.com",
     categories: ["file", "security", "network"],
-    tags: ["Any File", "Up to 3 GB", "50 files"],
-    features: ["🔐 AES-256-GCM", "⏱️ Auto-expires", "🔑 6-digit key"],
+    tags: ["Any File", "Up to 3 GB", "30 min"],
     live: true,
     featured: true,
-    iconBoxClass: "tool-icon--cyan",
-    iconId: "sendanywhere",
-    addedDate: "2026-09-15",
-    updateTag: "v1.0.0 · Security & P2P",
-    updateNote: "Transfer up to 3 GB with AES-256-GCM encryption and 6-digit key auto-expiration."
+    iconId: "send",
+    iconBoxClass: "tool-icon--blue",
+    artImg: "/assets/images/tools/sendanywhere-art.svg"
   },
   {
     id: "ytmp",
     title: "YTmp3/4",
-    description: "Convert YouTube videos to MP4 or MP3. Pick your quality, hit convert — files are processed and auto-deleted after 1 hour.",
-    url: "", // Inactive: localhost destination removed during security remediation
+    description: "Convert YouTube videos to MP4 or MP3 with multiple quality options.",
+    url: "", // In development — zero loopback destination
     categories: ["media"],
     tags: ["MP4", "MP3", "Up to 4K", "320 kbps"],
-    features: ["🎥 Video + Audio", "⏱️ Auto-expires", "🔒 No tracking"],
-    live: false, // Not live until verified HTTPS production endpoint is deployed
-    featured: false,
-    iconBoxClass: "tool-icon--coral",
-    iconId: "ytmp",
-    addedDate: "2026-09-21",
-    updateTag: "v1.0.0 · In Development",
-    updateNote: "YouTube video & audio converter (MP4 / MP3). Media processing pipeline currently in development."
+    live: false, // Inactive until verified production deployment
+    featured: true,
+    iconId: "music",
+    iconBoxClass: "tool-icon--rose",
+    artImg: "/assets/images/tools/ytmp34-art.svg"
   }
 ];
 
@@ -192,61 +127,111 @@ const CATEGORIES_DATA = [
   {
     id: "file",
     name: "File Utilities",
-    iconClass: "cat-icon--cyan",
-    iconId: "cat-file"
+    iconClass: "cat-icon--blue",
+    iconId: "folder"
   },
   {
     id: "security",
     name: "Privacy & Security",
-    iconClass: "cat-icon--pink",
-    iconId: "cat-security"
+    iconClass: "cat-icon--rose",
+    iconId: "shield"
   },
   {
     id: "network",
     name: "Network Tools",
-    iconClass: "cat-icon--blue",
-    iconId: "cat-network"
+    iconClass: "cat-icon--green",
+    iconId: "wifi"
   },
   {
     id: "developer",
     name: "Developer Tools",
-    iconClass: "cat-icon--violet",
-    iconId: "cat-developer"
+    iconClass: "cat-icon--purple",
+    iconId: "code"
   },
   {
     id: "media",
     name: "Media Tools",
     iconClass: "cat-icon--magenta",
-    iconId: "cat-media"
+    iconId: "play"
   },
   {
     id: "all",
     name: "All Tools",
-    iconClass: "cat-icon--teal",
-    iconId: "cat-all"
+    iconClass: "cat-icon--neutral",
+    iconId: "grid"
   }
 ];
 
 const ALLOWED_CATEGORY_IDS = new Set(["file", "security", "network", "developer", "media", "all"]);
-const ALLOWED_ICON_BOX_CLASSES = new Set([
-  "tool-icon--purple",
-  "tool-icon--cyan",
-  "tool-icon--coral",
-  "tool-icon--muted"
-]);
-const ALLOWED_CAT_CLASSES = new Set([
-  "cat-icon--cyan",
-  "cat-icon--pink",
-  "cat-icon--blue",
-  "cat-icon--violet",
-  "cat-icon--magenta",
-  "cat-icon--teal"
-]);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 6. SAFE SVG DOM BUILDER
-// Programmatically constructs clean SVG DOM nodes using createElementNS.
-// Completely bypasses innerHTML, preventing SVG-based script/attribute injection.
+// 5. FAVORITES MANAGEMENT SYSTEM (DEVICE-LOCAL STORAGE)
+// ─────────────────────────────────────────────────────────────────────────────
+const FAVORITES_STORAGE_KEY = "multitool_favorites";
+
+function getFavorites() {
+  try {
+    const raw = safeStorage.getItem(FAVORITES_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.filter(function (id) {
+        return typeof id === "string" && TOOLS_DATA.some(function (t) { return t.id === id; });
+      });
+    }
+  } catch (err) {}
+  return [];
+}
+
+function isFavorite(toolId) {
+  return getFavorites().includes(toolId);
+}
+
+function toggleFavorite(toolId) {
+  const current = getFavorites();
+  let updated;
+  let added = false;
+  if (current.includes(toolId)) {
+    updated = current.filter(function (id) { return id !== toolId; });
+    added = false;
+  } else {
+    updated = current.concat([toolId]);
+    added = true;
+  }
+  safeStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(updated));
+  updateFavBadge();
+
+  // Update heart buttons in DOM
+  document.querySelectorAll('.tool-fav-btn[data-tool-id="' + toolId + '"]').forEach(function (btn) {
+    btn.classList.toggle("favorited", added);
+    btn.setAttribute("aria-label", added ? "Remove from favorites" : "Add to favorites");
+    btn.replaceChildren(createHeartSvg(added));
+  });
+
+  // Re-render favorites view if currently open
+  const favView = document.getElementById("favoritesView");
+  if (favView && !favView.classList.contains("view-hidden")) {
+    renderFavoritesGrid();
+  }
+
+  showToast(added ? "Added to your saved favorites" : "Removed from favorites");
+}
+
+function updateFavBadge() {
+  const badge = document.getElementById("favBadge");
+  if (!badge) return;
+  const count = getFavorites().length;
+  if (count > 0) {
+    badge.textContent = String(count);
+    badge.style.display = "inline-block";
+  } else {
+    badge.style.display = "none";
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 6. SAFE SVG DOM GENERATOR
+// Programmatic createElementNS construction with zero innerHTML interpolation.
 // ─────────────────────────────────────────────────────────────────────────────
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -262,8 +247,25 @@ function createSvgElement(tag, attrs) {
   return el;
 }
 
+function createHeartSvg(filled) {
+  const svg = createSvgElement("svg", {
+    width: "18",
+    height: "18",
+    viewBox: "0 0 24 24",
+    fill: filled ? "#FF941F" : "none",
+    stroke: filled ? "#FF941F" : "currentColor",
+    "stroke-width": "2",
+    "stroke-linecap": "round",
+    "stroke-linejoin": "round"
+  });
+  svg.appendChild(createSvgElement("path", {
+    d: "M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+  }));
+  return svg;
+}
+
 function renderSafeSvgIcon(iconId, size) {
-  const s = String(size || 24);
+  const s = String(size || 20);
   const svg = createSvgElement("svg", {
     width: s,
     height: s,
@@ -276,68 +278,58 @@ function renderSafeSvgIcon(iconId, size) {
   });
 
   switch (iconId) {
-    case "metaclean":
+    case "image":
       svg.appendChild(createSvgElement("rect", { x: "3", y: "3", width: "18", height: "18", rx: "2", ry: "2" }));
       svg.appendChild(createSvgElement("circle", { cx: "8.5", cy: "8.5", r: "1.5" }));
       svg.appendChild(createSvgElement("polyline", { points: "21 15 16 10 5 21" }));
       break;
 
-    case "sendanywhere":
+    case "send":
       svg.appendChild(createSvgElement("line", { x1: "22", y1: "2", x2: "11", y2: "13" }));
       svg.appendChild(createSvgElement("polygon", { points: "22 2 15 22 11 13 2 9 22 2" }));
       break;
 
-    case "ytmp":
+    case "music":
       svg.appendChild(createSvgElement("circle", { cx: "9", cy: "18", r: "3" }));
       svg.appendChild(createSvgElement("circle", { cx: "18", cy: "16", r: "3" }));
       svg.appendChild(createSvgElement("path", { d: "M12 18V5l9-2v11" }));
       break;
 
-    case "clock-soon":
-      svg.appendChild(createSvgElement("circle", { cx: "12", cy: "12", r: "10" }));
-      svg.appendChild(createSvgElement("polyline", { points: "12 6 12 12 16 14" }));
-      break;
-
-    case "cat-file":
+    case "folder":
       svg.appendChild(createSvgElement("path", { d: "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" }));
       break;
 
-    case "cat-security":
+    case "shield":
       svg.appendChild(createSvgElement("path", { d: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" }));
       break;
 
-    case "cat-network":
+    case "wifi":
       svg.appendChild(createSvgElement("path", { d: "M5 12.55a11 11 0 0 1 14.08 0" }));
       svg.appendChild(createSvgElement("path", { d: "M1.42 9a16 16 0 0 1 21.16 0" }));
       svg.appendChild(createSvgElement("path", { d: "M8.53 16.11a6 6 0 0 1 6.95 0" }));
       svg.appendChild(createSvgElement("line", { x1: "12", y1: "20", x2: "12.01", y2: "20" }));
       break;
 
-    case "cat-developer":
+    case "code":
       svg.appendChild(createSvgElement("polyline", { points: "16 18 22 12 16 6" }));
       svg.appendChild(createSvgElement("polyline", { points: "8 6 2 12 8 18" }));
       break;
 
-    case "cat-media":
+    case "play":
       svg.appendChild(createSvgElement("polygon", { points: "5 3 19 12 5 21 5 3" }));
       break;
 
-    case "cat-all":
+    case "grid":
       svg.appendChild(createSvgElement("rect", { x: "3", y: "3", width: "7", height: "7", rx: "1.5" }));
       svg.appendChild(createSvgElement("rect", { x: "14", y: "3", width: "7", height: "7", rx: "1.5" }));
       svg.appendChild(createSvgElement("rect", { x: "3", y: "14", width: "7", height: "7", rx: "1.5" }));
       svg.appendChild(createSvgElement("rect", { x: "14", y: "14", width: "7", height: "7", rx: "1.5" }));
       break;
 
-    case "arrow-right":
+    case "arrow-up-right":
       svg.setAttribute("stroke-width", "2.5");
-      svg.appendChild(createSvgElement("line", { x1: "5", y1: "12", x2: "19", y2: "12" }));
-      svg.appendChild(createSvgElement("polyline", { points: "12 5 19 12 12 19" }));
-      break;
-
-    case "search-check":
-      svg.appendChild(createSvgElement("rect", { x: "3", y: "3", width: "18", height: "18", rx: "2" }));
-      svg.appendChild(createSvgElement("path", { d: "m9 12 2 2 4-4" }));
+      svg.appendChild(createSvgElement("line", { x1: "7", y1: "17", x2: "17", y2: "7" }));
+      svg.appendChild(createSvgElement("polyline", { points: "7 7 17 7 17 17" }));
       break;
 
     default:
@@ -349,30 +341,274 @@ function renderSafeSvgIcon(iconId, size) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 7. MAIN APPLICATION LIFECYCLE
+// 7. COMPONENT BUILDERS (ZERO INNERHTML)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function createToolCardElement(tool) {
+  const card = document.createElement("article");
+  card.className = "tool-card";
+
+  const safeCats = (tool.categories || []).filter(function (c) {
+    return ALLOWED_CATEGORY_IDS.has(c);
+  });
+  card.setAttribute("data-categories", safeCats.join(" "));
+
+  // Head
+  const head = document.createElement("div");
+  head.className = "tool-card-head";
+
+  const headLeft = document.createElement("div");
+  headLeft.className = "tool-card-head-left";
+
+  const iconBox = document.createElement("div");
+  iconBox.className = "tool-icon-box " + (tool.iconBoxClass || "tool-icon--orange");
+  iconBox.setAttribute("aria-hidden", "true");
+  iconBox.appendChild(renderSafeSvgIcon(tool.iconId, 20));
+  headLeft.appendChild(iconBox);
+
+  const titleEl = document.createElement("h3");
+  titleEl.className = "tool-card-title";
+  titleEl.textContent = tool.title;
+  headLeft.appendChild(titleEl);
+
+  const isLive = Boolean(tool.live && isValidToolUrl(tool.url));
+  const badge = document.createElement("span");
+  badge.className = "status-badge " + (isLive ? "badge-live" : "badge-soon");
+  badge.textContent = isLive ? "LIVE" : "SOON";
+  headLeft.appendChild(badge);
+
+  head.appendChild(headLeft);
+
+  // Favorite Heart Button
+  const favBtn = document.createElement("button");
+  favBtn.type = "button";
+  const favorited = isFavorite(tool.id);
+  favBtn.className = "tool-fav-btn" + (favorited ? " favorited" : "");
+  favBtn.setAttribute("data-tool-id", tool.id);
+  favBtn.setAttribute("aria-label", favorited ? "Remove from favorites" : "Add to favorites");
+  favBtn.appendChild(createHeartSvg(favorited));
+  favBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFavorite(tool.id);
+  });
+  head.appendChild(favBtn);
+
+  card.appendChild(head);
+
+  // Description
+  const descEl = document.createElement("p");
+  descEl.className = "tool-card-desc";
+  descEl.textContent = tool.description;
+  card.appendChild(descEl);
+
+  // Format Tags
+  const tagRow = document.createElement("div");
+  tagRow.className = "tag-row";
+  (tool.tags || []).forEach(function (tag) {
+    const tagSpan = document.createElement("span");
+    tagSpan.className = "format-tag";
+    tagSpan.textContent = tag;
+    tagRow.appendChild(tagSpan);
+  });
+  card.appendChild(tagRow);
+
+  // Footer (Action + Artwork)
+  const footer = document.createElement("div");
+  footer.className = "tool-card-footer";
+
+  if (isLive) {
+    const openBtn = document.createElement("a");
+    openBtn.href = tool.url;
+    openBtn.target = "_blank";
+    openBtn.rel = "noopener noreferrer";
+    openBtn.className = "card-btn card-btn--orange";
+    openBtn.setAttribute("aria-label", "Open " + tool.title);
+
+    const btnText = document.createElement("span");
+    btnText.textContent = "Open Tool";
+    openBtn.appendChild(btnText);
+    openBtn.appendChild(renderSafeSvgIcon("arrow-up-right", 14));
+    footer.appendChild(openBtn);
+  } else {
+    const disabledBtn = document.createElement("button");
+    disabledBtn.type = "button";
+    disabledBtn.className = "card-btn card-btn--disabled";
+    disabledBtn.disabled = true;
+    disabledBtn.setAttribute("aria-disabled", "true");
+    disabledBtn.setAttribute("aria-label", tool.title + " Coming Soon");
+
+    const disabledText = document.createElement("span");
+    disabledText.textContent = "Coming Soon";
+    disabledBtn.appendChild(disabledText);
+    footer.appendChild(disabledBtn);
+  }
+
+  // Card Illustration
+  if (tool.artImg) {
+    const artWrap = document.createElement("div");
+    artWrap.className = "card-art-wrap";
+    const art = document.createElement("img");
+    art.src = tool.artImg;
+    art.alt = "";
+    art.className = "card-art-img";
+    art.width = 96;
+    art.height = 80;
+    art.setAttribute("loading", "lazy");
+    art.setAttribute("aria-hidden", "true");
+    artWrap.appendChild(art);
+    footer.appendChild(artWrap);
+  }
+
+  card.appendChild(footer);
+  return card;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 8. DOM READY INITIALIZATION
 // ─────────────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", function () {
 
-  // 1. Dynamic Statistics Rendering (Real live counts via textContent)
-  function updateStats() {
-    const statTools = document.getElementById("statToolsAvailable");
-    if (statTools) {
-      statTools.textContent = String(TOOLS_DATA.length);
+  // Views & Navigation Elements
+  const navHome = document.getElementById("navHome");
+  const navAllTools = document.getElementById("navAllTools");
+  const navCategories = document.getElementById("navCategories");
+  const navFavorites = document.getElementById("navFavorites");
+
+  const bnavHome = document.getElementById("bnavHome");
+  const bnavAllTools = document.getElementById("bnavAllTools");
+  const bnavFavorites = document.getElementById("bnavFavorites");
+
+  const mainDashboardView = document.getElementById("mainDashboardView");
+  const allToolsView = document.getElementById("allToolsView");
+  const favoritesView = document.getElementById("favoritesView");
+
+  function setActiveView(viewName) {
+    // Unset active class on all nav items
+    [navHome, navAllTools, navCategories, navFavorites].forEach(function (btn) {
+      if (btn) btn.classList.remove("active");
+    });
+    [bnavHome, bnavAllTools, bnavFavorites].forEach(function (btn) {
+      if (btn) btn.classList.remove("active");
+    });
+
+    // Hide all view containers
+    if (mainDashboardView) mainDashboardView.classList.add("view-hidden");
+    if (allToolsView) allToolsView.classList.add("view-hidden");
+    if (favoritesView) favoritesView.classList.add("view-hidden");
+
+    if (viewName === "all-tools") {
+      if (navAllTools) navAllTools.classList.add("active");
+      if (bnavAllTools) bnavAllTools.classList.add("active");
+      if (allToolsView) allToolsView.classList.remove("view-hidden");
+      renderAllToolsGrid("all");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (viewName === "favorites") {
+      if (navFavorites) navFavorites.classList.add("active");
+      if (bnavFavorites) bnavFavorites.classList.add("active");
+      if (favoritesView) favoritesView.classList.remove("view-hidden");
+      renderFavoritesGrid();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (viewName === "categories") {
+      if (navCategories) navCategories.classList.add("active");
+      if (mainDashboardView) mainDashboardView.classList.remove("view-hidden");
+      const catSec = document.getElementById("categoriesSection");
+      if (catSec) {
+        catSec.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      // Default: Home
+      if (navHome) navHome.classList.add("active");
+      if (bnavHome) bnavHome.classList.add("active");
+      if (mainDashboardView) mainDashboardView.classList.remove("view-hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
-    const statNew = document.getElementById("statNewThisMonth");
-    if (statNew) {
-      statNew.textContent = String(TOOLS_DATA.length);
-    }
+
+    // Close mobile drawer if open
+    closeMobileDrawer();
   }
 
-  // 2. Dynamic Categories Rendering via Safe DOM Construction
+  // Sidebar Nav Click Listeners
+  if (navHome) navHome.addEventListener("click", function () { setActiveView("home"); });
+  if (navAllTools) navAllTools.addEventListener("click", function () { setActiveView("all-tools"); });
+  if (navCategories) navCategories.addEventListener("click", function () { setActiveView("categories"); });
+  if (navFavorites) navFavorites.addEventListener("click", function () { setActiveView("favorites"); });
+
+  // Mobile Bottom Nav Click Listeners
+  if (bnavHome) bnavHome.addEventListener("click", function () { setActiveView("home"); });
+  if (bnavAllTools) bnavAllTools.addEventListener("click", function () { setActiveView("all-tools"); });
+  if (bnavFavorites) bnavFavorites.addEventListener("click", function () { setActiveView("favorites"); });
+
+  // Hero Actions
+  const heroExploreBtn = document.getElementById("heroExploreBtn");
+  if (heroExploreBtn) {
+    heroExploreBtn.addEventListener("click", function () {
+      setActiveView("all-tools");
+    });
+  }
+
+  const viewAllToolsLink = document.getElementById("viewAllToolsLink");
+  if (viewAllToolsLink) {
+    viewAllToolsLink.addEventListener("click", function (e) {
+      e.preventDefault();
+      setActiveView("all-tools");
+    });
+  }
+
+  const viewAllCatsLink = document.getElementById("viewAllCatsLink");
+  if (viewAllCatsLink) {
+    viewAllCatsLink.addEventListener("click", function (e) {
+      e.preventDefault();
+      setActiveView("all-tools");
+    });
+  }
+
+  // How It Works Modal
+  const heroHowBtn = document.getElementById("heroHowBtn");
+  const howModal = document.getElementById("howModal");
+  const howModalClose = document.getElementById("howModalClose");
+
+  if (heroHowBtn && howModal) {
+    heroHowBtn.addEventListener("click", function () {
+      if (typeof howModal.showModal === "function") {
+        howModal.showModal();
+      } else {
+        howModal.setAttribute("open", "");
+      }
+    });
+  }
+
+  if (howModalClose && howModal) {
+    howModalClose.addEventListener("click", function () {
+      if (typeof howModal.close === "function") {
+        howModal.close();
+      } else {
+        howModal.removeAttribute("open");
+      }
+    });
+  }
+
+  if (howModal) {
+    howModal.addEventListener("click", function (e) {
+      if (e.target === howModal) {
+        if (typeof howModal.close === "function") howModal.close();
+      }
+    });
+  }
+
+  // 1. Dynamic Stats Rendering
+  function updateStats() {
+    const statTools = document.getElementById("statToolsAvailable");
+    if (statTools) statTools.textContent = String(TOOLS_DATA.length);
+    const statNew = document.getElementById("statNewThisMonth");
+    if (statNew) statNew.textContent = String(TOOLS_DATA.length);
+  }
+
+  // 2. Dynamic Categories Rendering (6 Cards Row)
   function renderCategories() {
     const catGrid = document.getElementById("categoriesGrid");
     if (!catGrid) return;
-
-    while (catGrid.firstChild) {
-      catGrid.removeChild(catGrid.firstChild);
-    }
+    catGrid.replaceChildren();
 
     CATEGORIES_DATA.forEach(function (cat) {
       const count = cat.id === "all"
@@ -381,60 +617,61 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const countLabel = count + (count === 1 ? " tool" : " tools");
 
-      const cardBtn = document.createElement("button");
-      cardBtn.className = "category-card";
-      cardBtn.setAttribute("data-cat", cat.id);
-      cardBtn.setAttribute("aria-label", "Filter by " + cat.name);
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "category-card";
+      card.setAttribute("data-cat", cat.id);
+      card.setAttribute("aria-label", "Filter by " + cat.name);
 
-      const iconWrap = document.createElement("div");
-      const safeIconClass = ALLOWED_CAT_CLASSES.has(cat.iconClass) ? cat.iconClass : "cat-icon--teal";
-      iconWrap.className = "cat-icon " + safeIconClass;
-      iconWrap.appendChild(renderSafeSvgIcon(cat.iconId, 22));
+      const iconBox = document.createElement("div");
+      iconBox.className = "cat-icon-box " + cat.iconClass;
+      iconBox.appendChild(renderSafeSvgIcon(cat.iconId, 18));
+      card.appendChild(iconBox);
 
-      const contentWrap = document.createElement("div");
-      contentWrap.className = "cat-content";
+      const content = document.createElement("div");
+      content.className = "cat-content";
 
-      const nameEl = document.createElement("div");
-      nameEl.className = "cat-name";
-      nameEl.textContent = cat.name;
+      const title = document.createElement("div");
+      title.className = "cat-title";
+      title.textContent = cat.name;
 
       const countEl = document.createElement("div");
       countEl.className = "cat-count";
       countEl.textContent = countLabel;
 
-      contentWrap.appendChild(nameEl);
-      contentWrap.appendChild(countEl);
-      cardBtn.appendChild(iconWrap);
-      cardBtn.appendChild(contentWrap);
+      content.appendChild(title);
+      content.appendChild(countEl);
+      card.appendChild(content);
 
-      cardBtn.addEventListener("click", function () {
+      card.addEventListener("click", function () {
+        setActiveView("all-tools");
         applyCategoryFilter(cat.id);
-        const dirSection = document.getElementById("all-tools");
-        if (dirSection) {
-          dirSection.scrollIntoView({ behavior: "smooth" });
-        }
       });
 
-      catGrid.appendChild(cardBtn);
+      catGrid.appendChild(card);
     });
   }
 
-  // 3. Dynamic Filter Pills for Directory via Safe DOM Construction
+  // 3. Featured Tools Rendering (3 Columns)
+  function renderFeaturedTools() {
+    const featuredGrid = document.getElementById("featuredToolsGrid");
+    if (!featuredGrid) return;
+    featuredGrid.replaceChildren();
+
+    TOOLS_DATA.forEach(function (tool) {
+      featuredGrid.appendChild(createToolCardElement(tool));
+    });
+  }
+
+  // 4. All Tools Directory Filter & Grid Rendering
   function renderFilterPills() {
     const filterRow = document.getElementById("dirFilterRow");
     if (!filterRow) return;
+    filterRow.replaceChildren();
 
-    while (filterRow.firstChild) {
-      filterRow.removeChild(filterRow.firstChild);
-    }
-
-    const categoriesWithTools = CATEGORIES_DATA.filter(function (cat) {
-      if (cat.id === "all") return true;
-      return TOOLS_DATA.some(function (t) { return t.categories && t.categories.includes(cat.id); });
-    });
-
-    categoriesWithTools.forEach(function (cat) {
+    CATEGORIES_DATA.forEach(function (cat) {
       const pill = document.createElement("button");
+      pill.type = "button";
       pill.className = "filter-pill" + (cat.id === "all" ? " active" : "");
       pill.setAttribute("data-filter", cat.id);
       pill.textContent = cat.name;
@@ -447,267 +684,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // 4. Dynamic Tools Directory Rendering via Safe DOM Construction
-  function renderToolsDirectory() {
-    const toolsGrid = document.getElementById("toolsGrid");
-    if (!toolsGrid) return;
-
-    while (toolsGrid.firstChild) {
-      toolsGrid.removeChild(toolsGrid.firstChild);
-    }
-
-    TOOLS_DATA.forEach(function (tool) {
-      const card = document.createElement("article");
-      card.className = "tool-card";
-
-      // Filter categories against allowlist
-      const safeCats = (tool.categories || []).filter(function (c) {
-        return ALLOWED_CATEGORY_IDS.has(c);
-      });
-      card.setAttribute("data-categories", safeCats.join(" "));
-
-      // Card Header
-      const head = document.createElement("div");
-      head.className = "tool-card-head";
-
-      const iconBox = document.createElement("div");
-      const safeBoxClass = ALLOWED_ICON_BOX_CLASSES.has(tool.iconBoxClass)
-        ? tool.iconBoxClass
-        : "tool-icon--purple";
-      iconBox.className = "tool-icon-box " + safeBoxClass;
-      iconBox.setAttribute("aria-hidden", "true");
-      iconBox.appendChild(renderSafeSvgIcon(tool.iconId, 24));
-      head.appendChild(iconBox);
-
-      const isLiveValid = Boolean(tool.live && isValidToolUrl(tool.url));
-
-      if (isLiveValid) {
-        const liveBadge = document.createElement("span");
-        liveBadge.className = "live-badge";
-        const dot = document.createElement("span");
-        dot.className = "live-dot";
-        liveBadge.appendChild(dot);
-        liveBadge.appendChild(document.createTextNode("LIVE"));
-        head.appendChild(liveBadge);
-      } else {
-        const soonBadge = document.createElement("span");
-        soonBadge.className = "soon-badge";
-        soonBadge.textContent = "SOON";
-        head.appendChild(soonBadge);
-      }
-
-      card.appendChild(head);
-
-      // Title & Description
-      const titleEl = document.createElement("h3");
-      titleEl.className = "tool-card-title";
-      titleEl.textContent = tool.title;
-      card.appendChild(titleEl);
-
-      const descEl = document.createElement("p");
-      descEl.className = "tool-card-desc";
-      descEl.textContent = tool.description;
-      card.appendChild(descEl);
-
-      // Tags
-      const tagRow = document.createElement("div");
-      tagRow.className = "tag-row";
-      (tool.tags || []).forEach(function (tag) {
-        const tagSpan = document.createElement("span");
-        tagSpan.className = "format-tag";
-        tagSpan.textContent = tag;
-        tagRow.appendChild(tagSpan);
-      });
-      card.appendChild(tagRow);
-
-      // Features
-      const featRow = document.createElement("div");
-      featRow.className = "tool-card-features";
-      (tool.features || []).forEach(function (feat) {
-        const featSpan = document.createElement("span");
-        featSpan.className = "feat-badge";
-        featSpan.textContent = feat;
-        featRow.appendChild(featSpan);
-      });
-      card.appendChild(featRow);
-
-      // Action Button
-      if (isLiveValid) {
-        const openBtn = document.createElement("a");
-        openBtn.href = tool.url;
-        openBtn.target = "_blank";
-        openBtn.rel = "noopener noreferrer";
-        openBtn.className = "card-btn card-btn--purple";
-        openBtn.setAttribute("aria-label", "Open " + tool.title);
-
-        const btnText = document.createElement("span");
-        btnText.textContent = "Open Tool";
-        openBtn.appendChild(btnText);
-        openBtn.appendChild(renderSafeSvgIcon("arrow-right", 14));
-
-        card.appendChild(openBtn);
-      } else {
-        const disabledBtn = document.createElement("button");
-        disabledBtn.type = "button";
-        disabledBtn.className = "card-btn card-btn--disabled";
-        disabledBtn.disabled = true;
-        disabledBtn.setAttribute("aria-disabled", "true");
-        disabledBtn.setAttribute("aria-label", tool.title + " Coming Soon");
-
-        const disabledText = document.createElement("span");
-        disabledText.textContent = "Coming Soon";
-        disabledBtn.appendChild(disabledText);
-
-        card.appendChild(disabledBtn);
-      }
-
-      toolsGrid.appendChild(card);
-    });
-
-    // Static "More Tools in Development" Card
-    const soonCard = document.createElement("article");
-    soonCard.className = "tool-card tool-card--soon";
-    soonCard.setAttribute("data-categories", "all");
-
-    const soonHead = document.createElement("div");
-    soonHead.className = "tool-card-head";
-
-    const soonIconBox = document.createElement("div");
-    soonIconBox.className = "tool-icon-box tool-icon--muted";
-    soonIconBox.setAttribute("aria-hidden", "true");
-    soonIconBox.appendChild(renderSafeSvgIcon("clock-soon", 24));
-    soonHead.appendChild(soonIconBox);
-
-    const soonBadge = document.createElement("span");
-    soonBadge.className = "soon-badge";
-    soonBadge.textContent = "SOON";
-    soonHead.appendChild(soonBadge);
-    soonCard.appendChild(soonHead);
-
-    const soonTitle = document.createElement("h3");
-    soonTitle.className = "tool-card-title";
-    soonTitle.textContent = "More Tools in Development";
-    soonCard.appendChild(soonTitle);
-
-    const soonDesc = document.createElement("p");
-    soonDesc.className = "tool-card-desc";
-    soonDesc.textContent = "New utilities added regularly with zero tracking, offline capability, and client-side encryption.";
-    soonCard.appendChild(soonDesc);
-
-    const soonTagRow = document.createElement("div");
-    soonTagRow.className = "tag-row";
-    const tag1 = document.createElement("span");
-    tag1.className = "format-tag";
-    tag1.textContent = "Modular";
-    const tag2 = document.createElement("span");
-    tag2.className = "format-tag";
-    tag2.textContent = "Zero Cloud Data";
-    soonTagRow.appendChild(tag1);
-    soonTagRow.appendChild(tag2);
-    soonCard.appendChild(soonTagRow);
-
-    const soonPill = document.createElement("div");
-    soonPill.className = "coming-soon-pill";
-    soonPill.textContent = "New tool in progress…";
-    soonCard.appendChild(soonPill);
-
-    toolsGrid.appendChild(soonCard);
-  }
-
-  // 5. Dynamic "Updates" Modal Section (Auto-updated, Safe DOM Construction)
-  function renderUpdatesModal() {
-    const updatesBody = document.getElementById("updatesModalBody");
-    if (!updatesBody) return;
-
-    while (updatesBody.firstChild) {
-      updatesBody.removeChild(updatesBody.firstChild);
-    }
-
-    // Core Platform Release Entry
-    const platformEntry = document.createElement("div");
-    platformEntry.className = "update-entry";
-
-    const pTag = document.createElement("div");
-    pTag.className = "update-tag";
-    pTag.textContent = "v1.0.0 · Core Platform";
-
-    const pTitle = document.createElement("h4");
-    pTitle.className = "update-title";
-    pTitle.textContent = "Brand New Dashboard & 3D Glass Design System";
-
-    const pDesc = document.createElement("p");
-    pDesc.className = "update-desc";
-    pDesc.textContent = "Complete visual overhaul matching the official MultiTool Hub branding. Responsive sidebar navigation, desktop & mobile optimized viewports, and unified utility hubs.";
-
-    platformEntry.appendChild(pTag);
-    platformEntry.appendChild(pTitle);
-    platformEntry.appendChild(pDesc);
-    updatesBody.appendChild(platformEntry);
-
-    // Dynamic Tool Updates (sorted newest first)
-    const sortedTools = TOOLS_DATA.slice().sort(function (a, b) {
-      return (b.addedDate || "").localeCompare(a.addedDate || "");
-    });
-
-    sortedTools.forEach(function (tool) {
-      const entry = document.createElement("div");
-      entry.className = "update-entry";
-
-      const tag = document.createElement("div");
-      tag.className = "update-tag";
-      tag.textContent = tool.updateTag || (tool.title + " · Release");
-
-      const title = document.createElement("h4");
-      title.className = "update-title";
-      title.textContent = tool.title;
-
-      const desc = document.createElement("p");
-      desc.className = "update-desc";
-      desc.textContent = tool.updateNote || tool.description;
-
-      entry.appendChild(tag);
-      entry.appendChild(title);
-      entry.appendChild(desc);
-
-      const isLiveValid = Boolean(tool.live && isValidToolUrl(tool.url));
-      const actionBox = document.createElement("div");
-      actionBox.className = "update-link-box";
-
-      if (isLiveValid) {
-        const link = document.createElement("a");
-        link.href = tool.url;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.className = "update-link";
-        link.textContent = "Open " + tool.title + " →";
-        actionBox.appendChild(link);
-      } else {
-        const pill = document.createElement("span");
-        pill.className = "update-status-pill";
-        pill.textContent = "In Development";
-        actionBox.appendChild(pill);
-      }
-
-      entry.appendChild(actionBox);
-      updatesBody.appendChild(entry);
-    });
-  }
-
-  // 6. Category Filtering Logic (Replaces inline style assignment with CSS class)
   function applyCategoryFilter(catKey) {
-    if (!ALLOWED_CATEGORY_IDS.has(catKey)) {
-      catKey = "all";
-    }
+    if (!ALLOWED_CATEGORY_IDS.has(catKey)) catKey = "all";
 
-    const filterPills = document.querySelectorAll(".filter-pill");
-    filterPills.forEach(function (pill) {
+    document.querySelectorAll(".filter-pill").forEach(function (pill) {
       pill.classList.toggle("active", pill.getAttribute("data-filter") === catKey);
     });
 
-    const toolCards = document.querySelectorAll(".directory-grid .tool-card");
-    toolCards.forEach(function (card) {
-      const cardCats = (card.getAttribute("data-categories") || "").split(" ");
-      if (catKey === "all" || cardCats.includes(catKey)) {
+    document.querySelectorAll("#allToolsGrid .tool-card").forEach(function (card) {
+      const cats = (card.getAttribute("data-categories") || "").split(" ");
+      if (catKey === "all" || cats.includes(catKey)) {
         card.classList.remove("tool-card--hidden");
       } else {
         card.classList.add("tool-card--hidden");
@@ -715,7 +701,66 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // 7. Theme Toggle & Persistence
+  function renderAllToolsGrid(initialFilter) {
+    const allGrid = document.getElementById("allToolsGrid");
+    if (!allGrid) return;
+    allGrid.replaceChildren();
+
+    TOOLS_DATA.forEach(function (tool) {
+      allGrid.appendChild(createToolCardElement(tool));
+    });
+
+    applyCategoryFilter(initialFilter || "all");
+  }
+
+  // 5. Favorites View Grid Rendering
+  function renderFavoritesGrid() {
+    const favGrid = document.getElementById("favoritesGrid");
+    if (!favGrid) return;
+    favGrid.replaceChildren();
+
+    const favIds = getFavorites();
+    const favTools = TOOLS_DATA.filter(function (t) { return favIds.includes(t.id); });
+
+    if (favTools.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state-card";
+
+      const icon = document.createElement("div");
+      icon.className = "empty-state-icon";
+      icon.appendChild(createHeartSvg(false));
+      empty.appendChild(icon);
+
+      const title = document.createElement("h3");
+      title.className = "empty-state-title";
+      title.textContent = "No favorites yet";
+      empty.appendChild(title);
+
+      const desc = document.createElement("p");
+      desc.className = "empty-state-desc";
+      desc.textContent = "Save your frequently used tools here for quick access by clicking the heart on any tool card.";
+      empty.appendChild(desc);
+
+      const exploreBtn = document.createElement("button");
+      exploreBtn.type = "button";
+      exploreBtn.className = "btn-primary-orange";
+      exploreBtn.style.marginTop = "10px";
+      exploreBtn.textContent = "Explore All Tools";
+      exploreBtn.addEventListener("click", function () {
+        setActiveView("all-tools");
+      });
+      empty.appendChild(exploreBtn);
+
+      favGrid.appendChild(empty);
+      return;
+    }
+
+    favTools.forEach(function (tool) {
+      favGrid.appendChild(createToolCardElement(tool));
+    });
+  }
+
+  // 6. Theme Toggle & Persistence
   const savedTheme = safeStorage.getItem("multitool-theme");
   if (savedTheme === "light") {
     document.body.classList.add("theme-light");
@@ -726,159 +771,27 @@ document.addEventListener("DOMContentLoaded", function () {
   function toggleTheme() {
     const isLight = document.body.classList.toggle("theme-light");
     safeStorage.setItem("multitool-theme", isLight ? "light" : "dark");
-    showToast(isLight ? "Switched to High-Contrast Theme" : "Switched to Obsidian Dark Theme");
+    showToast(isLight ? "Switched to Light Theme" : "Switched to Dark Charcoal Theme");
   }
 
   const themeBtn = document.getElementById("themeBtn");
   if (themeBtn) themeBtn.addEventListener("click", toggleTheme);
+  const mobileThemeBtn = document.getElementById("mobileThemeBtn");
+  if (mobileThemeBtn) mobileThemeBtn.addEventListener("click", toggleTheme);
 
-  // 8. Modals System (Updates, Request, Issue, Search)
-  function openDialog(modalId) {
-    const modal = document.getElementById(modalId);
-    if (!modal) return;
-    if (typeof modal.showModal === "function") {
-      modal.showModal();
-    } else {
-      modal.setAttribute("open", "");
-    }
-  }
-
-  function closeDialog(modalId) {
-    const modal = document.getElementById(modalId);
-    if (!modal) return;
-    if (typeof modal.close === "function") {
-      modal.close();
-    } else {
-      modal.removeAttribute("open");
-    }
-  }
-
-  document.querySelectorAll(".modal-dialog").forEach(function (dialog) {
-    dialog.addEventListener("click", function (e) {
-      if (e.target === dialog || e.target.classList.contains("modal-backdrop")) {
-        closeDialog(dialog.id);
-      }
-    });
-  });
-
-  // Updates Modal Triggers
-  const updatesTriggers = ["btnWhatsNew", "navUpdates", "bnavUpdates", "notifBtn"];
-  updatesTriggers.forEach(function (id) {
-    const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener("click", function (e) {
-        e.preventDefault();
-        openDialog("updatesModal");
-      });
-    }
-  });
-
-  const updatesClose = document.getElementById("updatesModalClose");
-  if (updatesClose) {
-    updatesClose.addEventListener("click", function () {
-      closeDialog("updatesModal");
-    });
-  }
-
-  // Quick Action: Tool Request (Strict client-side handling with local persistence)
-  const qaNewRequest = document.getElementById("qaNewRequest");
-  if (qaNewRequest) {
-    qaNewRequest.addEventListener("click", function () {
-      openDialog("requestModal");
-    });
-  }
-  const reqClose = document.getElementById("reqModalClose");
-  if (reqClose) {
-    reqClose.addEventListener("click", function () {
-      closeDialog("requestModal");
-    });
-  }
-
-  const reqForm = document.getElementById("reqForm");
-  if (reqForm) {
-    reqForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      const nameInput = document.getElementById("reqToolName");
-      const descInput = document.getElementById("reqToolDesc");
-      const toolName = (nameInput ? nameInput.value : "").trim().slice(0, 100);
-      const toolDesc = (descInput ? descInput.value : "").trim().slice(0, 1000);
-
-      if (!toolName || !toolDesc) {
-        showToast("Please provide both a name and a description.");
-        return;
-      }
-
-      try {
-        const stored = JSON.parse(safeStorage.getItem("multitool_feedback") || "[]");
-        stored.push({
-          type: "request",
-          name: toolName,
-          desc: toolDesc,
-          timestamp: new Date().toISOString()
-        });
-        safeStorage.setItem("multitool_feedback", JSON.stringify(stored.slice(-20)));
-      } catch (err) {}
-
-      closeDialog("requestModal");
-      reqForm.reset();
-      showToast("Tool request recorded in local feedback log.");
-    });
-  }
-
-  // Quick Action: Report Issue (Strict client-side handling with local persistence)
-  const qaReportIssue = document.getElementById("qaReportIssue");
-  if (qaReportIssue) {
-    qaReportIssue.addEventListener("click", function () {
-      openDialog("issueModal");
-    });
-  }
-  const issueClose = document.getElementById("issueModalClose");
-  if (issueClose) {
-    issueClose.addEventListener("click", function () {
-      closeDialog("issueModal");
-    });
-  }
-
-  const issueForm = document.getElementById("issueForm");
-  if (issueForm) {
-    issueForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      const toolSelect = document.getElementById("issueTool");
-      const detailsInput = document.getElementById("issueDetails");
-      const affectedTool = (toolSelect ? toolSelect.value : "general").slice(0, 50);
-      const details = (detailsInput ? detailsInput.value : "").trim().slice(0, 1000);
-
-      if (!details) {
-        showToast("Please describe the issue.");
-        return;
-      }
-
-      try {
-        const stored = JSON.parse(safeStorage.getItem("multitool_feedback") || "[]");
-        stored.push({
-          type: "issue",
-          tool: affectedTool,
-          details: details,
-          timestamp: new Date().toISOString()
-        });
-        safeStorage.setItem("multitool_feedback", JSON.stringify(stored.slice(-20)));
-      } catch (err) {}
-
-      closeDialog("issueModal");
-      issueForm.reset();
-      showToast("Issue report recorded in local feedback log.");
-    });
-  }
-
-  // 9. Interactive Search Dialog (Ctrl + K) via Safe DOM Construction
-  const searchTriggers = document.querySelectorAll(".search-trigger");
+  // 7. Search Dialog (Ctrl + K)
   const searchModal = document.getElementById("searchModal");
   const modalSearchInput = document.getElementById("modalSearchInput");
   const modalResultsList = document.getElementById("modalResultsList");
   const searchModalClose = document.getElementById("searchModalClose");
 
   function openSearch() {
-    openDialog("searchModal");
+    if (!searchModal) return;
+    if (typeof searchModal.showModal === "function") {
+      searchModal.showModal();
+    } else {
+      searchModal.setAttribute("open", "");
+    }
     if (modalSearchInput) {
       setTimeout(function () {
         modalSearchInput.focus();
@@ -888,17 +801,28 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function closeSearch() {
-    closeDialog("searchModal");
+    if (!searchModal) return;
+    if (typeof searchModal.close === "function") {
+      searchModal.close();
+    } else {
+      searchModal.removeAttribute("open");
+    }
   }
 
-  searchTriggers.forEach(function (btn) {
-    btn.addEventListener("click", function (e) {
+  document.querySelectorAll(".search-trigger").forEach(function (el) {
+    el.addEventListener("click", function (e) {
       e.preventDefault();
       openSearch();
     });
   });
 
   if (searchModalClose) searchModalClose.addEventListener("click", closeSearch);
+
+  if (searchModal) {
+    searchModal.addEventListener("click", function (e) {
+      if (e.target === searchModal) closeSearch();
+    });
+  }
 
   window.addEventListener("keydown", function (e) {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -911,18 +835,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     if (e.key === "Escape") {
       closeSearch();
-      closeDialog("updatesModal");
-      closeDialog("requestModal");
-      closeDialog("issueModal");
+      if (howModal && typeof howModal.close === "function") howModal.close();
     }
   });
 
   function renderSearchResults(query) {
     if (!modalResultsList) return;
-
-    while (modalResultsList.firstChild) {
-      modalResultsList.removeChild(modalResultsList.firstChild);
-    }
+    modalResultsList.replaceChildren();
 
     const q = query.trim().toLowerCase();
     const filtered = TOOLS_DATA.filter(function (tool) {
@@ -957,8 +876,10 @@ document.addEventListener("DOMContentLoaded", function () {
       mainWrap.className = "result-item-main";
 
       const iconWrap = document.createElement("div");
-      iconWrap.className = "result-item-icon";
-      iconWrap.appendChild(renderSafeSvgIcon("search-check", 18));
+      iconWrap.className = "tool-icon-box " + (tool.iconBoxClass || "tool-icon--orange");
+      iconWrap.style.width = "28px";
+      iconWrap.style.height = "28px";
+      iconWrap.appendChild(renderSafeSvgIcon(tool.iconId, 16));
       mainWrap.appendChild(iconWrap);
 
       const textWrap = document.createElement("div");
@@ -992,50 +913,15 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // 10. Navigation Active Scroll Sync
-  const navHome = document.getElementById("navHome");
-  const navAllTools = document.getElementById("navAllTools");
-  const navCategories = document.getElementById("navCategories");
-  const bnavHome = document.getElementById("bnavHome");
-  const bnavAllTools = document.getElementById("bnavAllTools");
-
-  function setActiveNav(navKey) {
-    [navHome, navAllTools, navCategories].forEach(function (el) {
-      if (el) el.classList.remove("active");
-    });
-    [bnavHome, bnavAllTools].forEach(function (el) {
-      if (el) el.classList.remove("active");
-    });
-
-    if (navKey === "home") {
-      if (navHome) navHome.classList.add("active");
-      if (bnavHome) bnavHome.classList.add("active");
-    } else if (navKey === "all-tools") {
-      if (navAllTools) navAllTools.classList.add("active");
-      if (bnavAllTools) bnavAllTools.classList.add("active");
-    } else if (navKey === "categories") {
-      if (navCategories) navCategories.classList.add("active");
-    }
-  }
-
-  window.addEventListener("scroll", function () {
-    const scrollPos = window.scrollY + 200;
-    const allToolsEl = document.getElementById("all-tools");
-    const catEl = document.getElementById("categories");
-
-    if (allToolsEl && scrollPos >= allToolsEl.offsetTop) {
-      setActiveNav("all-tools");
-    } else if (catEl && scrollPos >= catEl.offsetTop) {
-      setActiveNav("categories");
-    } else {
-      setActiveNav("home");
-    }
-  });
-
-  // 11. Mobile Drawer Toggle (Uses CSS classes instead of inline styles)
+  // 8. Mobile Drawer
   const mobileMenuToggle = document.getElementById("mobileMenuToggle");
   const sidebar = document.getElementById("sidebar");
   const drawerOverlay = document.getElementById("drawerOverlay");
+
+  function closeMobileDrawer() {
+    if (sidebar) sidebar.classList.remove("sidebar--open");
+    if (drawerOverlay) drawerOverlay.classList.remove("drawer-overlay--open");
+  }
 
   if (mobileMenuToggle && sidebar) {
     mobileMenuToggle.addEventListener("click", function () {
@@ -1047,24 +933,19 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   if (drawerOverlay) {
-    drawerOverlay.addEventListener("click", function () {
-      if (sidebar) {
-        sidebar.classList.remove("sidebar--open");
-      }
-      drawerOverlay.classList.remove("drawer-overlay--open");
-    });
+    drawerOverlay.addEventListener("click", closeMobileDrawer);
   }
 
-  // Initialize Dynamic UI Components
+  // Initial Render Calls
   updateStats();
+  updateFavBadge();
   renderCategories();
+  renderFeaturedTools();
   renderFilterPills();
-  renderToolsDirectory();
-  renderUpdatesModal();
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 8. SECURITY-HARDENED NOTIFICATIONS & ESCAPING HELPERS
+// 9. TOAST NOTIFICATIONS (SAFE DOM)
 // ─────────────────────────────────────────────────────────────────────────────
 function showToast(message) {
   const container = document.getElementById("toastContainer");
@@ -1091,16 +972,5 @@ function showToast(message) {
         toast.parentNode.removeChild(toast);
       }
     }, 300);
-  }, 3200);
-}
-
-function escapeHTML(str) {
-  if (str === null || str === undefined) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;")
-    .replace(/`/g, "&#x60;");
+  }, 2800);
 }

@@ -1,114 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Background Gradient -->
-    <radialGradient id="bgGrad" cx="45%" cy="32%" r="75%">
-      <stop offset="0%" stop-color="#1c2045"/>
-      <stop offset="55%" stop-color="#0c0e22"/>
-      <stop offset="100%" stop-color="#060714"/>
-    </radialGradient>
-
-    <!-- Border Glow Gradient -->
-    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00f0ff"/>
-      <stop offset="35%" stop-color="#3b82f6"/>
-      <stop offset="70%" stop-color="#a855f7"/>
-      <stop offset="100%" stop-color="#ec4899"/>
+    <linearGradient id="mthBrandGradBack" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF941F"/>
+      <stop offset="100%" stop-color="#EA580C"/>
     </linearGradient>
-
-    <!-- Neon Glow Filter -->
-    <filter id="neonBlur" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="16" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
+    <linearGradient id="mthBrandGradFront" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FED7AA"/>
+      <stop offset="100%" stop-color="#FB923C"/>
+    </linearGradient>
+    <filter id="mthShadow" x="-15%" y="-15%" width="130%" height="130%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000000" flood-opacity="0.4"/>
     </filter>
-
-    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="8" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-
-    <!-- 3D Ribbon Gradients -->
-    <!-- Left Upward Leg -->
-    <linearGradient id="ribbonLeft" x1="20%" y1="100%" x2="80%" y2="0%">
-      <stop offset="0%" stop-color="#0284c7"/>
-      <stop offset="50%" stop-color="#00f0ff"/>
-      <stop offset="100%" stop-color="#ffffff"/>
-    </linearGradient>
-
-    <!-- Center Fold Downward -->
-    <linearGradient id="ribbonCenter" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0284c7"/>
-      <stop offset="35%" stop-color="#3b82f6"/>
-      <stop offset="70%" stop-color="#6366f1"/>
-      <stop offset="100%" stop-color="#9333ea"/>
-    </linearGradient>
-
-    <!-- Center Valley to Right Peak -->
-    <linearGradient id="ribbonRightUp" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#6366f1"/>
-      <stop offset="50%" stop-color="#a855f7"/>
-      <stop offset="100%" stop-color="#c084fc"/>
-    </linearGradient>
-
-    <!-- Right Downward Leg -->
-    <linearGradient id="ribbonRightDown" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#c084fc"/>
-      <stop offset="45%" stop-color="#d946ef"/>
-      <stop offset="100%" stop-color="#f43f5e"/>
-    </linearGradient>
-
-    <!-- Specular Highlight Arc -->
-    <linearGradient id="specular" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18"/>
-      <stop offset="45%" stop-color="#ffffff" stop-opacity="0.02"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
-    </linearGradient>
   </defs>
-
-  <!-- Outer Rounded Squircle Base -->
-  <rect x="20" y="20" width="472" height="472" rx="112" fill="url(#bgGrad)"/>
-  
-  <!-- Outer Neon Border Stroke -->
-  <rect x="20" y="20" width="472" height="472" rx="112" fill="none" stroke="url(#borderGrad)" stroke-width="12" stroke-opacity="0.95"/>
-  
-  <!-- Top Specular Gloss Highlight -->
-  <path d="M20 132 C20 70 70 20 132 20 L380 20 C442 20 492 70 492 132 L492 230 Q256 270 20 230 Z" fill="url(#specular)"/>
-
-  <!-- Diffuse Neon Orbs Behind Ribbon -->
-  <circle cx="190" cy="270" r="110" fill="#00f0ff" opacity="0.25" filter="url(#neonBlur)"/>
-  <circle cx="330" cy="270" r="110" fill="#ec4899" opacity="0.25" filter="url(#neonBlur)"/>
-
-  <!-- 3D Ribbon 'M' Monogram -->
-  <!-- Drop Shadow of Ribbon -->
-  <path d="M 148 350 L 198 175 Q 210 145 235 160 L 268 285 Q 274 300 288 285 L 320 160 Q 345 145 358 175 L 408 350"
-        fill="none" stroke="#000000" stroke-width="56" stroke-linecap="round" stroke-linejoin="round" opacity="0.6" filter="url(#softGlow)" transform="translate(0, 16)"/>
-
-  <!-- Main Ribbon Strokes -->
-  <g filter="url(#softGlow)">
-    <!-- Continuous Centerline path for the M with seamless stroke -->
-    <!-- Left Leg -->
-    <path d="M 146 345 L 194 175 Q 204 145 228 156 L 264 280"
-          fill="none" stroke="url(#ribbonLeft)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
-    
-    <!-- Central Valley to Right Peak -->
-    <path d="M 248 260 L 268 285 Q 278 295 288 285 L 328 156 Q 348 145 358 175"
-          fill="none" stroke="url(#ribbonCenter)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
-
-    <!-- Right Leg -->
-    <path d="M 324 165 Q 345 145 358 175 L 406 345"
-          fill="none" stroke="url(#ribbonRightDown)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
-
-    <!-- Top Left Crest Specular Sheen -->
-    <path d="M 188 185 Q 200 152 222 160"
-          fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round" opacity="0.85"/>
-
-    <!-- Top Right Crest Specular Sheen -->
-    <path d="M 330 160 Q 348 152 360 185"
-          fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity="0.75"/>
-  </g>
+  <!-- Background tilted card -->
+  <rect x="7" y="13" width="26" height="26" rx="7" fill="url(#mthBrandGradBack)" transform="rotate(-7 20 26)" filter="url(#mthShadow)"/>
+  <!-- Foreground front card -->
+  <rect x="16" y="8" width="26" height="26" rx="7" fill="url(#mthBrandGradFront)" filter="url(#mthShadow)"/>
+  <!-- Translucent inner accent card -->
+  <rect x="21" y="13" width="16" height="16" rx="4" fill="#FFFFFF" fill-opacity="0.32"/>
 </svg>

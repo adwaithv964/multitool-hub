@@ -117,7 +117,7 @@ def test_service_worker():
     assert 'networkResponse.status === 200' in sw, "SW must require HTTP 200 for caching"
     assert 'networkResponse.type === "basic"' in sw, "SW must require basic response type"
     assert 'no-store' in sw, "SW must honor no-store directives"
-    assert 'multitool-shell-v4' in sw, "SW must have versioned cache"
+    assert 'multitool-shell-' in sw, "SW must have versioned cache"
     print("    [PASS] Service Worker caching architecture verified.")
 
 def test_dom_xss_and_codebase():

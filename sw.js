@@ -1,6 +1,6 @@
 // MultiTool Hub — Hardened Application Shell Service Worker
-// Cache Version: multitool-shell-v4
-const CACHE_NAME = "multitool-shell-v4";
+// Cache Version: multitool-shell-v6
+const CACHE_NAME = "multitool-shell-v6";
 
 // Explicit allowlist of approved same-origin static shell assets
 const SHELL_ASSETS = [
@@ -9,15 +9,22 @@ const SHELL_ASSETS = [
   "/styles.css",
   "/app.js",
   "/logo.svg",
+  "/favicon.svg",
   "/favicon.ico",
+  "/favicon-16x16.png",
+  "/favicon-32x32.png",
+  "/favicon-48x48.png",
   "/favicon-32.png",
   "/apple-touch-icon.png",
   "/icon-192.png",
   "/icon-512.png",
+  "/icon-maskable-512.png",
   "/manifest.json",
-  "/assets/hero-emblem.svg",
-  "/assets/metaclean-art.svg",
-  "/assets/sendanywhere-art.svg"
+  "/assets/hero-workspace.jpg",
+  "/assets/images/tools/metaclean-art.svg",
+  "/assets/images/tools/sendanywhere-art.svg",
+  "/assets/images/tools/ytmp34-art.svg",
+  "/assets/brand-logo.png"
 ];
 
 const SHELL_SET = new Set(SHELL_ASSETS);
@@ -86,7 +93,6 @@ self.addEventListener("fetch", function (event) {
     caches.open(CACHE_NAME).then(function (cache) {
       return cache.match(request).then(function (cachedResponse) {
         const networkFetch = fetch(request).then(function (networkResponse) {
-          // Validate: must be HTTP 200, basic type (same-origin, not opaque), not marked no-store
           if (
             networkResponse &&
             networkResponse.status === 200 &&
@@ -99,7 +105,6 @@ self.addEventListener("fetch", function (event) {
           }
           return networkResponse;
         }).catch(function () {
-          // Network failed, fall back to cached response
           return cachedResponse;
         });
 
